@@ -42,22 +42,21 @@ export async function GET(
     }
 
     const tracksData = await tracksResponse.json() as { data: unknown[]; total?: number };
-    let albumData: { id?: number; title?: string; cover?: string; cover_small?: string; cover_medium?: string; cover_big?: string; cover_xl?: string; md5_image?: string; [key: string]: unknown } | null = null;
+    type AlbumData = { id?: number; title?: string; cover?: string; cover_small?: string; cover_medium?: string; cover_big?: string; cover_xl?: string; md5_image?: string; [key: string]: unknown };
+    let albumData: AlbumData | null = null;
 
     // Try to get album info if available
     if (albumResponse.ok) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        albumData = await albumResponse.json() as typeof albumData;
+        albumData = await albumResponse.json() as AlbumData;
       } catch (err) {
         console.warn("[Album Tracks API] Failed to parse album info:", err);
       }
     }
 
     // Extract album info values for type safety
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const albumIdValue = albumData?.id;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const albumTitleValue = albumData?.title;
 
     // Enrich tracks with album info if available
