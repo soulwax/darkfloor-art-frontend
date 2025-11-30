@@ -21,7 +21,6 @@ export class SpectralWavesRenderer {
     const dataStep = Math.floor(data.length / barCount);
 
     // Average amplitude already calculated above for background
-    const avgAmplitude = data.reduce((sum, val) => sum + val, 0) / data.length / 255;
 
     // Draw multiple wave layers
     const waves = [

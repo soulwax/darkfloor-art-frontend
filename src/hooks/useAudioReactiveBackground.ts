@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 export function useAudioReactiveBackground(
   audioElement: HTMLAudioElement | null,
   isPlaying: boolean,
-  enabled: boolean = true
+  enabled = true
 ) {
   const visualizer = useAudioVisualizer(audioElement, {
     fftSize: 256,

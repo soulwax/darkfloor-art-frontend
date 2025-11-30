@@ -9,6 +9,9 @@ import type { Track } from "@/types";
 import { extractColorsFromImage, type ColorPalette } from "@/utils/colorExtractor";
 import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
+import { STORAGE_KEYS } from "@/config/storage";
+import { useSession } from "next-auth/react";
+import { api } from "@/trpc/react";
 import { springPresets } from "@/utils/spring-animations";
 import { formatTime } from "@/utils/time";
 import { AnimatePresence, motion, useMotionValue, useTransform, type PanInfo } from "framer-motion";
@@ -29,7 +32,6 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -96,9 +98,18 @@ export default function MobilePlayer(props: MobilePlayerProps) {
   // Get audio element from context
   const { audioElement: contextAudioElement } = useGlobalPlayer();
 
+  // Get session and preferences for visualizer state
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const { data: preferences } = api.music.getUserPreferences.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const updatePreferences = api.music.updatePreferences.useMutation();
+
   const [isExpanded, setIsExpanded] = useState(forceExpanded);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showVisualizer, setShowVisualizer] = useState(false);
+  const [visualizerEnabled, setVisualizerEnabled] = useState(true);
   const [albumColorPalette, setAlbumColorPalette] = useState<ColorPalette | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [isSeeking, setIsSeeking] = useState(false);
@@ -188,8 +199,33 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     }
   }, [contextAudioElement]);
 
-  // Audio-reactive background effects (always enabled on mobile for now)
-  useAudioReactiveBackground(audioElement, isPlaying, true);
+  // Sync visualizer state with database preferences
+  useEffect(() => {
+    if (preferences) {
+      setVisualizerEnabled(preferences.visualizerEnabled ?? true);
+    }
+  }, [preferences]);
+
+  // Load visualizer preference from localStorage when not authenticated
+  useEffect(() => {
+    if (isAuthenticated) return; // Skip if authenticated (preferences come from DB)
+    if (typeof window === "undefined") return;
+    
+    const stored = window.localStorage.getItem(STORAGE_KEYS.VISUALIZER_ENABLED);
+    if (stored !== null) {
+      try {
+        const parsed: unknown = JSON.parse(stored);
+        setVisualizerEnabled(parsed === true);
+      } catch {
+        // Fallback for old format
+        setVisualizerEnabled(stored === "true");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
+  // Audio-reactive background effects (respects visualizer preference)
+  useAudioReactiveBackground(audioElement, isPlaying, visualizerEnabled);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const displayTime = isSeeking ? seekTime : currentTime;

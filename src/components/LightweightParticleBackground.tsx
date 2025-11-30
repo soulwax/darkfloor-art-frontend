@@ -48,7 +48,8 @@ export function LightweightParticleBackground() {
       const duration = Math.random() * 20 + 25; // Slower animation (25-45s)
       const delay = Math.random() * 5;
       const floatX = (Math.random() * 80 - 40).toFixed(2);
-      const floatY = -(Math.random() * 120 + 60).toFixed(2);
+      const floatYValue = -(Math.random() * 120 + 60);
+      const floatY = floatYValue.toFixed(2);
       const startScale = Math.random() * 0.3 + 0.5;
       const endScale = Math.random() * 0.4 + 0.8;
 
@@ -88,10 +89,12 @@ export function LightweightParticleBackground() {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      const currentAnimationFrame = animationFrameRef.current;
+      if (currentAnimationFrame !== null) {
+        cancelAnimationFrame(currentAnimationFrame);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
