@@ -1,12 +1,12 @@
-// File: eslint.config.js
-
 import { FlatCompat } from "@eslint/eslintrc";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import tseslint from "typescript-eslint";
 // @ts-ignore -- no types for this plugin
 import drizzle from "eslint-plugin-drizzle";
 
 const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
+  baseDirectory: dirname(fileURLToPath(import.meta.url)),
 });
 
 export default tseslint.config(

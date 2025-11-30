@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "check": "next lint && tsc --noEmit",
+    "check": "eslint . && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -26,8 +26,8 @@
     "deploy": "npm run build && pm2 reload ecosystem.config.cjs --env production --update-env",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "preview": "next build && next start",
     "start": "next start --port 3222",
     "typecheck": "tsc --noEmit",
@@ -64,7 +64,6 @@
   },
   "main": "electron/main.js",
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
     "@next/bundle-analyzer": "^16.0.1",
     "@svgr/cli": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.16",

@@ -246,7 +246,7 @@ class StorageService {
     percentage: number;
   }> {
     // Try to use Storage Estimate API first (more accurate)
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
+    if (typeof navigator !== "undefined" && "storage" in navigator && "estimate" in navigator.storage) {
       try {
         const estimate = await navigator.storage.estimate();
         const used = estimate.usage ?? 0;

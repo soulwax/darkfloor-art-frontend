@@ -6,7 +6,7 @@ module.exports = {
       // ============================================
       // PRODUCTION CONFIGURATION
       // ============================================
-      name: 'starchild--music-frontend-prod',
+      name: 'starchild-music-frontend-prod',
       script: 'node_modules/next/dist/bin/next',
       args: 'start --port 3222',
 
@@ -69,7 +69,6 @@ module.exports = {
       // ADVANCED OPTIONS
       // ============================================
       // Graceful shutdown
-      wait_ready: true, // Wait for app to signal ready
       shutdown_with_message: true,
 
       // Source map support for better error traces

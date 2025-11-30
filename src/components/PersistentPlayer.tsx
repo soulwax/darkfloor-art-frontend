@@ -179,9 +179,9 @@ export default function PersistentPlayer() {
         <AudioVisualizer
           audioElement={player.audioElement}
           isPlaying={player.isPlaying}
-          width={400}
-          height={150}
-          barCount={64}
+          width={280}
+          height={130}
+          barCount={56}
           type={(preferences?.visualizerType as "bars" | "wave" | "circular" | "oscilloscope" | "spectrum" | "spectral-waves" | "radial-spectrum" | "particles" | "waveform-mirror" | "frequency-rings" | "frequency-bands" | "frequency-circular" | "frequency-layered" | "frequency-waterfall" | "frequency-radial" | "frequency-particles") ?? "bars"}
           onTypeChange={(newType) => {
             updatePreferences.mutate({ visualizerType: newType });
