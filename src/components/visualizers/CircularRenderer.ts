@@ -186,20 +186,59 @@ export class CircularRenderer {
       }
     }
 
+    // Draw kaleidoscope segments with chromatic aberration for vivid effect
     for (let seg = 0; seg < segments; seg++) {
+      // Red channel (chromatic aberration)
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation); // Add rotation
-      const mirrorX = seg % 4 < 2 ? 1 : -1;
-      const mirrorY = seg % 2 === 0 ? 1 : -1;
-      ctx.scale(mirrorX, mirrorY);
+      ctx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation);
+      if (seg % 2 === 0) {
+        ctx.scale(1, 1);
+      } else {
+        ctx.scale(-1, 1);
+      }
+      ctx.translate(-centerX - 1, -centerY - 1);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.6;
+      ctx.filter = 'saturate(1.5) contrast(1.3) hue-rotate(-5deg)';
+      ctx.drawImage(offCanvas, 0, 0);
+      ctx.restore();
+
+      // Green channel
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation);
+      if (seg % 2 === 0) {
+        ctx.scale(1, 1);
+      } else {
+        ctx.scale(-1, 1);
+      }
       ctx.translate(-centerX, -centerY);
-      ctx.globalCompositeOperation = 'screen'; // Use screen blend for maximum vibrant effect
-      ctx.globalAlpha = 1.0;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.7;
+      ctx.filter = 'saturate(1.8) contrast(1.4) brightness(1.1)';
+      ctx.drawImage(offCanvas, 0, 0);
+      ctx.restore();
+
+      // Blue channel (chromatic aberration)
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate((seg * Math.PI * 2) / segments + this.kaleidoscopeRotation);
+      if (seg % 2 === 0) {
+        ctx.scale(1, 1);
+      } else {
+        ctx.scale(-1, 1);
+      }
+      ctx.translate(-centerX + 1, -centerY + 1);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.6;
+      ctx.filter = 'saturate(1.5) contrast(1.3) hue-rotate(5deg)';
       ctx.drawImage(offCanvas, 0, 0);
       ctx.restore();
     }
 
+    // Reset filters and composite modes
+    ctx.filter = 'none';
     ctx.globalAlpha = 1.0;
     ctx.globalCompositeOperation = 'source-over';
   }
