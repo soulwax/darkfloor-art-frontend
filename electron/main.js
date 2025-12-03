@@ -33,7 +33,8 @@ const findAvailablePort = (startPort) => {
   return new Promise((resolve) => {
     const server = http.createServer();
     server.listen(startPort, () => {
-      const { port } = server.address();
+      const address = server.address();
+      const port = typeof address === 'object' && address !== null ? address.port : startPort;
       server.close(() => {
         log(`Found available port: ${port}`);
         resolve(port);
