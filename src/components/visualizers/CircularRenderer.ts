@@ -124,6 +124,7 @@ export class CircularRenderer {
     }
 
       offCtx.restore();
+    }
 
     offCtx.shadowBlur = 0;
 
