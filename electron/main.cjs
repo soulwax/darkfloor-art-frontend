@@ -43,7 +43,6 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
-  // macOS-specific: recreate window on dock icon click
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -57,7 +56,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Hide default menu in production
 if (!isDev) {
   Menu.setApplicationMenu(null);
 }
