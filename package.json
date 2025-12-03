@@ -29,23 +29,6 @@
       "url": "https://github.com/soulwax"
     }
   ],
-  "files": [
-    ".next/standalone/**/*",
-    ".next/static/**/*",
-    "public/**/*",
-    "electron/**/*",
-    "package.json"
-  ],
-  "extraResources": [
-    {
-      "from": ".next",
-      "to": ".next",
-      "filter": [
-        "standalone/**/*",
-        "static/**/*"
-      ]
-    }
-  ],
   "scripts": {
     "build": "next build",
     "check": "eslint . && tsc --noEmit",
@@ -143,11 +126,25 @@
       "output": "dist"
     },
     "files": [
-      ".next/standalone/**/*",
-      ".next/static/**/*",
-      "public/**/*",
       "electron/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": ".next/standalone",
+        "filter": ["**/*"]
+      },
+      {
+        "from": ".next/static",
+        "to": ".next/static",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "public",
+        "to": "public",
+        "filter": ["**/*"]
+      }
     ],
     "win": {
       "target": [

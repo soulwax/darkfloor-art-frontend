@@ -10,7 +10,9 @@
       "Bash(curl:*)",
       "Bash(command -v:*)",
       "Bash(npm run db:generate:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

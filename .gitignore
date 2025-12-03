@@ -72,3 +72,5 @@ public/**/*.js
 *.snap
 
 .github/docs/*.md
+
+nul
