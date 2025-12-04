@@ -15,13 +15,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { useAudioReactiveBackground } from "@/hooks/useAudioReactiveBackground";
 import { LightweightParticleBackground } from "./LightweightParticleBackground";
+import { KaleidoscopeBackground } from "./KaleidoscopeBackground";
 import MaturePlayer from "./Player";
-
-// Dynamic imports to prevent SSR issues with Web Audio API
-const AudioVisualizer = dynamic(
-  () => import("./AudioVisualizer").then((mod) => mod.AudioVisualizer),
-  { ssr: false },
-);
 
 const Equalizer = dynamic(
   () => import("./Equalizer").then((mod) => mod.Equalizer),
@@ -58,10 +53,8 @@ export default function PersistentPlayer() {
   // Initialize state from database preferences, with fallback to false
   const [showQueue, setShowQueue] = useState(false);
   const [showEqualizer, setShowEqualizer] = useState(false);
-  // Visualizer is disabled - keeping state for future use
-  // const [albumColorPalette, setAlbumColorPalette] = useState<ColorPalette | null>(null);
   const [visualizerEnabled, setVisualizerEnabled] = useState(true);
-  // const [visualizerEnsureToken, setVisualizerEnsureToken] = useState(0);
+  const [visualizerEnsureToken, setVisualizerEnsureToken] = useState(0);
 
   // Sync state with database preferences when they load
   useEffect(() => {
@@ -243,25 +236,11 @@ export default function PersistentPlayer() {
         />
       )}
 
-      {/* Kaleidoscope Audio Visualizer */}
-      {player.audioElement && player.currentTrack && visualizerEnabled && !isMobile && (
-        <AudioVisualizer
+      {/* Fullscreen Kaleidoscope Background */}
+      {player.audioElement && player.currentTrack && visualizerEnabled && (
+        <KaleidoscopeBackground
           audioElement={player.audioElement}
           isPlaying={player.isPlaying}
-          width={400}
-          height={400}
-          barCount={64}
-          type="kaleidoscope"
-          onTypeChange={(newType) => {
-            updatePreferences.mutate({ visualizerType: newType });
-          }}
-          onClose={() => {
-            persistVisualizerPreference(false);
-          }}
-          colorPalette={albumColorPalette ?? null}
-          isDraggable={true}
-          blendWithBackground={true}
-          ensureVisibleSignal={visualizerEnsureToken ?? 0}
         />
       )}
 
