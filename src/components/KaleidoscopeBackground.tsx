@@ -50,6 +50,7 @@ export function KaleidoscopeBackground({
     if (!canvas) return;
 
     const updateSize = () => {
+      // Use display size - renderer handles quality scaling internally
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 

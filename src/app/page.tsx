@@ -307,17 +307,6 @@ function SearchPageContent() {
   const searchContent = (
     <div className="flex min-h-screen flex-col">
       <main className="container mx-auto w-full flex-1 py-6 md:py-8">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={springPresets.gentle}
-          className="mb-6 text-center md:mb-10"
-        >
-          <p className="text-sm text-[var(--color-subtext)] md:text-base">
-            Search 50 million+ tracks. Log in for playlists and more.
-          </p>
-        </motion.div>
 
         {/* Search Card */}
         <motion.div
