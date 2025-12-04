@@ -7,7 +7,7 @@
 
 import { isTrack, type Track } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.starchildmusic.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3222";
 
 // Log configuration on module load (client-side only)
 if (typeof window !== "undefined") {
