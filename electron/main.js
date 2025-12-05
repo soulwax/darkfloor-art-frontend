@@ -1,5 +1,9 @@
 // File: electron/main.js
 
+// Load environment variables from .env.local first
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+
 const {
   app,
   BrowserWindow,

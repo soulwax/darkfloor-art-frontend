@@ -111,12 +111,12 @@ export function useAudioReactiveBackground(
       const normalizedMid = total > 0 ? midWeight / total : 0;
       const normalizedTreble = total > 0 ? trebleWeight / total : 0;
 
-      // Kaleidoscope hue range: Wider separation for more distinct colors
+      // Flow field hue range: Wider separation for more distinct colors
       // Bass = red-orange (0-60), Mid = yellow-green-cyan (60-180), Treble = blue-purple-pink (180-360)
       const hue =
         normalizedBass * 60 + normalizedMid * 120 + normalizedTreble * 180;
 
-      // Add time-based color cycling for kaleidoscope effect (use performance.now() for better accuracy)
+      // Add time-based color cycling for smooth transitions (use performance.now() for better accuracy)
       // Only update when tab is visible to save resources
       // Increased multiplier for faster, more dramatic color shifts
       const timeHue =

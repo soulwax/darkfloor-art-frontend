@@ -230,7 +230,7 @@ export const userPreferences = createTable(
       .default(sql`'[]'::jsonb`),
     equalizerPanelOpen: d.boolean().default(false).notNull(),
     queuePanelOpen: d.boolean().default(false).notNull(),
-    visualizerType: d.varchar({ length: 30 }).default("kaleidoscope"),
+    visualizerType: d.varchar({ length: 30 }).default("flowfield"),
     visualizerEnabled: d.boolean().default(true).notNull(),
     compactMode: d.boolean().default(false).notNull(),
     theme: d.varchar({ length: 20 }).default("dark"), // 'dark' | 'light'

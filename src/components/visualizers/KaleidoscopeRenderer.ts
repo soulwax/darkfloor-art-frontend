@@ -105,9 +105,8 @@ export class KaleidoscopeRenderer {
     const midIntensity = this.getFrequencyBandIntensity(dataArray, bufferLength, 0.3, 0.6);
     const trebleIntensity = this.getFrequencyBandIntensity(dataArray, bufferLength, 0.7, 1.0);
 
-    // Performance: Adjust fade rate based on quality
-    const fadeRate = 0.05 * (1 + (1 - this.qualityScale) * 0.5);
-    ctx.fillStyle = `rgba(0, 0, 0, ${fadeRate})`;
+    // Clear main canvas with slight fade for trails (darker for more vibrant trails)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // More kaleidoscopic: Increase base and max segments for more complex patterns
@@ -257,11 +256,9 @@ export class KaleidoscopeRenderer {
       let hue3 = hue1 + 120;
       if (hue3 >= 360) hue3 -= 360;
 
-      // Dimmed colors - further reduced
-      gradient.addColorStop(0, `hsla(${hue1}, 45%, ${25 + audioIntensity * 15}%, ${0.25 + bassIntensity * 0.2})`);
-      gradient.addColorStop(0.7, `hsla(${hue2}, 45%, ${30 + midIntensity * 15}%, ${0.3 + audioIntensity * 0.15})`);
-      gradient.addColorStop(0.95, `hsla(${hue3}, 45%, 32%, ${0.2 + audioIntensity * 0.15})`);
-      gradient.addColorStop(1, `hsla(${hue3}, 45%, 32%, 0.05)`);
+      gradient.addColorStop(0, `hsla(${hue1}, 100%, ${50 + audioIntensity * 30}%, ${0.3 + bassIntensity * 0.2})`);
+      gradient.addColorStop(0.5, `hsla(${hue2}, 100%, ${60 + midIntensity * 30}%, ${0.35 + audioIntensity * 0.15})`);
+      gradient.addColorStop(1, `hsla(${hue3}, 100%, 70%, 0)`);
 
       ctx.save();
       ctx.strokeStyle = gradient;
@@ -294,22 +291,17 @@ export class KaleidoscopeRenderer {
       ctx.save();
       ctx.translate(particle.x, particle.y);
 
-      // Fast modulo for hue
-      let hue = particle.hue + this.hueOffset;
-      hue = hue % 360;
-      if (hue < 0) hue += 360;
-      ctx.fillStyle = `hsla(${hue}, 45%, ${28 + trebleIntensity * 15}%, ${alpha * 0.5})`;
-      ctx.shadowBlur = 8 + trebleIntensity * 12;
-      ctx.shadowColor = `hsla(${hue}, 45%, 32%, ${alpha * 0.4})`;
+      const hue = (particle.hue + this.hueOffset) % 360;
+      ctx.fillStyle = `hsla(${hue}, 100%, ${60 + trebleIntensity * 30}%, ${alpha * 0.5})`;
+      ctx.shadowBlur = 15 + trebleIntensity * 25;
+      ctx.shadowColor = `hsla(${hue}, 100%, 70%, ${alpha * 0.5})`;
 
       ctx.beginPath();
       ctx.arc(0, 0, size, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw inner bright core - dimmed - fast modulo
-      let hue2 = hue + 30;
-      if (hue2 >= 360) hue2 -= 360;
-      ctx.fillStyle = `hsla(${hue2}, 45%, 38%, ${alpha * 0.35})`;
+      // Draw inner bright core
+      ctx.fillStyle = `hsla(${(hue + 30) % 360}, 100%, 90%, ${alpha * 0.4})`;
       ctx.shadowBlur = 5;
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);
@@ -341,10 +333,10 @@ export class KaleidoscopeRenderer {
       if (hue < 0) hue += 360;
 
       ctx.save();
-      ctx.strokeStyle = `hsla(${hue}, 45%, ${25 + trebleIntensity * 15}%, ${0.15 + audioIntensity * 0.15})`;
-      ctx.lineWidth = 2 + midIntensity * 5;
-      ctx.shadowBlur = 6 + trebleIntensity * 10;
-      ctx.shadowColor = `hsla(${hue}, 45%, 28%, ${0.2 + audioIntensity * 0.2})`;
+      ctx.strokeStyle = `hsla(${hue}, 100%, ${50 + trebleIntensity * 30}%, ${0.15 + audioIntensity * 0.15})`;
+      ctx.lineWidth = 2 + midIntensity * 4;
+      ctx.shadowBlur = 10 + trebleIntensity * 20;
+      ctx.shadowColor = `hsla(${hue}, 100%, 60%, ${0.25 + audioIntensity * 0.25})`;
 
       ctx.beginPath();
       ctx.arc(0, 0, currentRadius, 0, Math.PI * 2);
@@ -360,15 +352,12 @@ export class KaleidoscopeRenderer {
     ctx.save();
     ctx.rotate(rotation);
 
-      // Fast modulo for hue
-      let hue = this.hueOffset + this.time * 2;
-      hue = hue % 360;
-      if (hue < 0) hue += 360;
-    ctx.strokeStyle = `hsla(${hue}, 45%, ${28 + midIntensity * 15}%, ${0.2 + audioIntensity * 0.2})`;
-    ctx.fillStyle = `hsla(${hue}, 45%, ${25 + audioIntensity * 15}%, ${0.08 + trebleIntensity * 0.12})`;
-    ctx.lineWidth = 3 + trebleIntensity * 6;
-    ctx.shadowBlur = 8 + audioIntensity * 15;
-    ctx.shadowColor = `hsla(${hue}, 45%, 30%, ${0.25 + audioIntensity * 0.2})`;
+    const hue = (this.hueOffset + this.time * 2) % 360;
+    ctx.strokeStyle = `hsla(${hue}, 100%, ${60 + midIntensity * 30}%, ${0.25 + audioIntensity * 0.2})`;
+    ctx.fillStyle = `hsla(${hue}, 100%, ${50 + audioIntensity * 30}%, ${0.075 + trebleIntensity * 0.1})`;
+    ctx.lineWidth = 3 + trebleIntensity * 5;
+    ctx.shadowBlur = 15 + audioIntensity * 30;
+    ctx.shadowColor = `hsla(${hue}, 100%, 70%, ${0.3 + audioIntensity * 0.2})`;
 
     // Pre-calculate angle increment
     const angleStep = this.TWO_PI / sides;

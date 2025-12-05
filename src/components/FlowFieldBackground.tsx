@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { KaleidoscopeRenderer } from "./visualizers/KaleidoscopeRenderer";
+import { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
 
-interface KaleidoscopeBackgroundProps {
+interface FlowFieldBackgroundProps {
   audioElement: HTMLAudioElement | null;
   isPlaying: boolean;
 }
 
-export function KaleidoscopeBackground({
+export function FlowFieldBackground({
   audioElement,
   isPlaying,
-}: KaleidoscopeBackgroundProps) {
+}: FlowFieldBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendererRef = useRef<KaleidoscopeRenderer | null>(null);
+  const rendererRef = useRef<FlowFieldRenderer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -57,7 +57,7 @@ export function KaleidoscopeBackground({
       if (rendererRef.current) {
         rendererRef.current.resize(window.innerWidth, window.innerHeight);
       } else {
-        rendererRef.current = new KaleidoscopeRenderer(canvas);
+        rendererRef.current = new FlowFieldRenderer(canvas);
       }
     };
 
@@ -114,6 +114,8 @@ export function KaleidoscopeBackground({
         height: "100vh",
         zIndex: -1,
         pointerEvents: "none",
+        opacity: 0.3,
+        filter: "blur(20px)",
       }}
     />
   );

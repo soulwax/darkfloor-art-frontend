@@ -50,7 +50,7 @@ export function AudioVisualizer({
   height = 80,
   barCount = 64,
   barGap = 2,
-  type = "kaleidoscope",
+  type = "flowfield",
   onTypeChange,
   colorPalette = null,
   isDraggable = false,
@@ -615,7 +615,8 @@ export function AudioVisualizer({
           width: dimensions.width,
           height: dimensions.height,
           mixBlendMode: blendWithBackground ? "screen" : "screen", // Always use screen for more vibrant visuals
-          opacity: 1.0, // Full opacity for less subtle visuals
+          opacity: 0.4, // Dimmed for subtle visuals
+          filter: "blur(8px)",
         }}
         title="Click to cycle visualizer type"
       />

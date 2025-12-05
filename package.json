@@ -59,14 +59,14 @@
     "start": "next start --port 3222",
     "typecheck": "tsc --noEmit",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3222 && electron .\"",
-    "electron:prod": "cross-env ELECTRON_BUILD=true next build && npm run electron:prepare && cross-env ELECTRON_PROD=true electron .",
-    "electron:prod:win": "npm run electron:build:win && .\\dist\\Starchild Music Setup 0.2.0.exe",
-    "electron:prepare": "node electron/prepare-package.js",
+    "electron:prod": "node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true ELECTRON_PROD=true next build && npm run electron:prepare && electron .\"",
+    "electron:prod:win": "npm run electron:build:win && .\\dist\\Starchild Music Setup 0.3.0.exe",
+    "electron:prepare": "node scripts/load-env-build.js \"node electron/prepare-package.js\"",
     "electron:clean": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\"",
-    "electron:build": "npm run electron:clean && cross-env ELECTRON_BUILD=true next build && npm run electron:prepare && electron-builder",
-    "electron:build:win": "npm run electron:clean && cross-env ELECTRON_BUILD=true next build && npm run electron:prepare && electron-builder --win",
-    "electron:build:mac": "npm run electron:clean && cross-env ELECTRON_BUILD=true next build && npm run electron:prepare && electron-builder --mac",
-    "electron:build:linux": "npm run electron:clean && cross-env ELECTRON_BUILD=true next build && npm run electron:prepare && electron-builder --linux"
+    "electron:build": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder",
+    "electron:build:win": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder --win",
+    "electron:build:mac": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder --mac",
+    "electron:build:linux": "npm run electron:clean && node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true next build\" && npm run electron:prepare && electron-builder --linux"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
@@ -147,7 +147,13 @@
       "target": [
         "nsis"
       ],
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "certificateSubjectName": "localhost",
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
+      "signDlls": true,
+      "sign": "./electron/sign.js"
     },
     "mac": {
       "target": [

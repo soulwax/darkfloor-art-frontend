@@ -40,7 +40,9 @@ export const authConfig = {
   },
   cookies: {
     sessionToken: {
-      name: `__Secure-next-auth.session-token`,
+      name: process.env.NODE_ENV === "production"
+        ? `__Secure-authjs.session-token`
+        : `authjs.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
@@ -49,14 +51,40 @@ export const authConfig = {
         maxAge: 30 * 24 * 60 * 60, // 30 days
       },
     },
+    csrfToken: {
+      name: process.env.NODE_ENV === "production"
+        ? `__Host-authjs.csrf-token`
+        : `authjs.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+    callbackUrl: {
+      name: process.env.NODE_ENV === "production"
+        ? `__Secure-authjs.callback-url`
+        : `authjs.callback-url`,
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: ({ session, user }) => {
+      // Ensure proper serialization by converting to plain object
+      return {
+        expires: session.expires,
+        user: {
+          id: String(user.id),
+          name: user.name ?? null,
+          email: user.email ?? null,
+          image: user.image ?? null,
+        },
+      };
+    },
   },
 } satisfies NextAuthConfig;

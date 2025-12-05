@@ -1,7 +1,7 @@
 // File: src/constants/visualizer.ts
 
 export const VISUALIZER_TYPES = [
-  "kaleidoscope",
+  "flowfield",
 ] as const;
 
 export type VisualizerType = (typeof VISUALIZER_TYPES)[number];
@@ -29,7 +29,7 @@ export const DEFAULT_VISUALIZER_LAYOUT_STATE: VisualizerLayoutState = {
   x: 16,
   y: 16,
   isExpanded: false,
-  type: "kaleidoscope",
+  type: "flowfield",
 };
 
 export const DEFAULT_VISUALIZER_STATE: VisualizerSerializedState = {
