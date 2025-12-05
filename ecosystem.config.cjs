@@ -1,6 +1,8 @@
 /* File: ecosystem.config.cjs */
 /* * */
 
+const path = require('path');
+
 module.exports = {
   apps: [
     {
@@ -10,12 +12,16 @@ module.exports = {
       name: 'starchild-next',
       script: 'node_modules/next/dist/bin/next',
       args: 'start --port 3222 --update-env',
+      cwd: path.resolve(__dirname), // Explicitly set working directory to ensure .next folder is found
 
       // ============================================
       // CLUSTER & PERFORMANCE
       // ============================================
-      instances: 2, // 2 instances (leaving 2 cores for system/DB)
-      exec_mode: 'cluster', // Enable load balancing
+      // Note: Using 'fork' mode instead of 'cluster' for Next.js
+      // Next.js has built-in optimizations and cluster mode can cause issues
+      // with static file serving and chunk loading
+      instances: 1, // Start with 1 instance (can scale horizontally with load balancer)
+      exec_mode: 'fork', // Use fork mode for better Next.js compatibility
 
       // ============================================
       // MEMORY MANAGEMENT
