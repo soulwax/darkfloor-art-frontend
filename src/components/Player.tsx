@@ -67,11 +67,9 @@ export default function MaturePlayer({
   onToggleVisualizer,
   visualizerEnabled,
 }: PlayerProps) {
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
-  const volumeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Wrapper functions with haptic feedback
   const handlePlayPause = () => {
@@ -128,23 +126,6 @@ export default function MaturePlayer({
     const percentage = x / rect.width;
     onSeek(percentage * duration);
   };
-
-  const handleVolumeHover = () => {
-    if (volumeTimeoutRef.current) clearTimeout(volumeTimeoutRef.current);
-    setShowVolumeSlider(true);
-  };
-
-  const handleVolumeLeave = () => {
-    volumeTimeoutRef.current = setTimeout(() => {
-      setShowVolumeSlider(false);
-    }, 300);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (volumeTimeoutRef.current) clearTimeout(volumeTimeoutRef.current);
-    };
-  }, []);
 
   if (!currentTrack) return null;
 
@@ -437,11 +418,7 @@ export default function MaturePlayer({
           </div>
 
           {/* Volume Control */}
-          <div
-            className="relative hidden items-center gap-2 md:flex"
-            onMouseEnter={handleVolumeHover}
-            onMouseLeave={handleVolumeLeave}
-          >
+          <div className="relative hidden items-center gap-2 md:flex">
             <button
               onClick={onToggleMute}
               className="text-[var(--color-subtext)] transition hover:text-[var(--color-text)]"
@@ -485,11 +462,7 @@ export default function MaturePlayer({
                 </svg>
               )}
             </button>
-            <div
-              className={`transition-all ${
-                showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
-              }`}
-            >
+            <div className="w-24">
               <input
                 type="range"
                 min={0}
