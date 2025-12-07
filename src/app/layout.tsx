@@ -30,6 +30,28 @@ export const metadata = {
     "Modern music streaming and discovery platform with smart recommendations",
   applicationName: "Starchild Music",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+  openGraph: {
+    title: "Starchild Music Stream",
+    description:
+      "Modern music streaming and discovery platform with smart recommendations",
+    type: "website",
+    url: "https://starchildmusic.com",
+    siteName: "Starchild Music",
+    images: [
+      {
+        url: "https://starchildmusic.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Starchild Music - Modern music streaming platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Starchild Music Stream",
+    description:
+      "Modern music streaming and discovery platform with smart recommendations",
+  },
   other: {
     // Enhanced mobile meta tags
     "format-detection": "telephone=no", // Prevent auto-linking phone numbers

@@ -1,5 +1,172 @@
 // File: src/app/page.tsx
 
+import { env } from "@/env";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+
+export async function generateMetadata(props: {
+  searchParams: Promise<{ q?: string; album?: string }>;
+}): Promise<Metadata> {
+  const params = await props.searchParams;
+  const query = params.q;
+  const albumId = params.album;
+
+  // Default metadata
+  const defaultMetadata: Metadata = {
+    title: "Starchild Music Stream",
+    description:
+      "Modern music streaming and discovery platform with smart recommendations",
+    openGraph: {
+      title: "Starchild Music Stream",
+      description:
+        "Modern music streaming and discovery platform with smart recommendations",
+      type: "website",
+      url: "https://starchildmusic.com",
+      siteName: "Starchild Music",
+      images: [
+        {
+          url: "https://starchildmusic.com/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: "Starchild Music - Modern music streaming platform",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Starchild Music Stream",
+      description:
+        "Modern music streaming and discovery platform with smart recommendations",
+    },
+  };
+
+  // If there's a search query, fetch the first result and customize metadata
+  if (query) {
+    try {
+      const url = new URL(`${env.NEXT_PUBLIC_API_URL}music/search`);
+      url.searchParams.set("q", query);
+      const res = await fetch(url.toString(), {
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as {
+          data: Array<{
+            id: number;
+            title: string;
+            artist: { name: string; picture_medium?: string };
+            album: { title: string; cover_medium?: string };
+          }>;
+          total: number;
+        };
+
+        if (data.data && data.data.length > 0) {
+          const firstTrack = data.data[0];
+          const title = `${firstTrack.title} - ${firstTrack.artist.name} | Starchild Music`;
+          const description = `Listen to "${firstTrack.title}" by ${firstTrack.artist.name} from the album "${firstTrack.album.title}". Search results for "${query}" on Starchild Music - ${data.total.toLocaleString()} tracks found.`;
+          const imageUrl =
+            firstTrack.album.cover_medium ||
+            firstTrack.artist.picture_medium ||
+            "https://starchildmusic.com/og-image.png";
+
+          return {
+            title,
+            description,
+            openGraph: {
+              title,
+              description,
+              type: "music.song",
+              url: `https://starchildmusic.com?q=${encodeURIComponent(query)}`,
+              siteName: "Starchild Music",
+              images: [
+                {
+                  url: imageUrl,
+                  width: 500,
+                  height: 500,
+                  alt: `${firstTrack.title} by ${firstTrack.artist.name}`,
+                },
+              ],
+            },
+            twitter: {
+              card: "summary_large_image",
+              title,
+              description,
+              images: [imageUrl],
+            },
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch metadata for search query:", error);
+    }
+  }
+
+  // If there's an album ID, try to fetch album info
+  if (albumId) {
+    try {
+      const albumIdNum = parseInt(albumId, 10);
+      if (!isNaN(albumIdNum)) {
+        // Fetch album info through the proxy API
+        const res = await fetch(
+          `${env.NEXT_PUBLIC_API_URL}album/${albumIdNum}`,
+          {
+            next: { revalidate: 3600 },
+          },
+        );
+
+        if (res.ok) {
+          const albumData = (await res.json()) as {
+            title?: string;
+            artist?: { name?: string };
+            cover_medium?: string;
+            nb_tracks?: number;
+          };
+
+          if (albumData.title) {
+            const title = `${albumData.title}${albumData.artist?.name ? ` - ${albumData.artist.name}` : ""} | Starchild Music`;
+            const description = `Listen to the album "${albumData.title}"${albumData.artist?.name ? ` by ${albumData.artist.name}` : ""}${albumData.nb_tracks ? ` (${albumData.nb_tracks} tracks)` : ""} on Starchild Music.`;
+
+            return {
+              title,
+              description,
+              openGraph: {
+                title,
+                description,
+                type: "music.album",
+                url: `https://starchildmusic.com?album=${albumId}`,
+                siteName: "Starchild Music",
+                images: [
+                  {
+                    url:
+                      albumData.cover_medium ||
+                      "https://starchildmusic.com/og-image.png",
+                    width: 500,
+                    height: 500,
+                    alt: albumData.title,
+                  },
+                ],
+              },
+              twitter: {
+                card: "summary_large_image",
+                title,
+                description,
+                images: [
+                  albumData.cover_medium ||
+                    "https://starchildmusic.com/og-image.png",
+                ],
+              },
+            };
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch metadata for album:", error);
+    }
+  }
+
+  return defaultMetadata;
+}
+
 "use client";
 
 import MobileSearchBar from "@/components/MobileSearchBar";
@@ -24,7 +191,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Music2, Search, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 function SearchPageContent() {
   const { data: session } = useSession();
