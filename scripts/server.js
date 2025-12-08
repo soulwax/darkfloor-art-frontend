@@ -36,7 +36,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 // ============================================
 const isDev = nodeEnv === 'development';
 const port = process.env.PORT || (isDev ? 3412 : 3222);
-const hostname = process.env.NEXTAUTH_URL || `locahost:${port}`;
+const hostname = process.env.HOSTNAME || 'localhost';
 
 // ============================================
 // CENTRALIZED LOGGING WITH CHALK

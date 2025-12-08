@@ -32,6 +32,7 @@ module.exports = {
       name: 'starchild-music-frontend-prod',
       script: 'scripts/server.js',
       args: '',
+      interpreter: 'node',
 
       // ============================================
       // CLUSTER & PERFORMANCE
@@ -113,6 +114,7 @@ module.exports = {
       name: 'starchild-music-frontend-dev',
       script: 'scripts/server.js',
       args: '',
+      interpreter: 'node',
 
       // ============================================
       // CLUSTER & PERFORMANCE
