@@ -484,7 +484,7 @@ export function EnhancedQueue({
   const totalDuration = queue.reduce((acc, track) => acc + track.duration, 0);
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.96)] shadow-[0_0_40px_rgba(5,10,18,0.65)] backdrop-blur-lg">
+    <div className="fixed inset-y-0 right-0 z-[60] flex w-full max-w-md flex-col border-l border-[rgba(244,178,102,0.14)] bg-[rgba(10,16,24,0.96)] shadow-[0_0_40px_rgba(5,10,18,0.65)] backdrop-blur-lg">
       {/* Header */}
       <div className="flex flex-col gap-3 border-b border-[rgba(244,178,102,0.12)] p-4">
         <div className="flex items-center justify-between">
