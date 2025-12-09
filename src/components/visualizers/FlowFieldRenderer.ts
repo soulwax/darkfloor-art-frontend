@@ -218,7 +218,12 @@ export class FlowFieldRenderer {
     connections: number[];
   }[] = [];
 
-  private stellarMapStars: { x: number; y: number; size: number; hue: number }[] = [];
+  private stellarMapStars: {
+    x: number;
+    y: number;
+    size: number;
+    hue: number;
+  }[] = [];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -241,7 +246,10 @@ export class FlowFieldRenderer {
     this.patternSequence = [...this.allPatterns];
     for (let i = this.patternSequence.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [this.patternSequence[i], this.patternSequence[j]] = [this.patternSequence[j]!, this.patternSequence[i]!];
+      [this.patternSequence[i], this.patternSequence[j]] = [
+        this.patternSequence[j]!,
+        this.patternSequence[i]!,
+      ];
     }
   }
 
@@ -374,7 +382,6 @@ export class FlowFieldRenderer {
   }
 
   private updatePatternTransition(audioIntensity: number): void {
-
     this.patternTimer++;
 
     if (this.isTransitioning) {
@@ -2159,15 +2166,12 @@ export class FlowFieldRenderer {
     this.updatePatternTransition(audioIntensity);
 
     // Clear with fade - more reactive to audio
-    const fadeAmount = this.currentPattern === 'swarm' ? 0.15 : 0.08;
     ctx.fillStyle = `rgba(0, 0, 0, ${fadeAmount + audioIntensity * 0.1})`; // More responsive fade
-=======
     const trailPatterns = ["swarm", "fireworks", "starfield", "constellation"];
     const fadeAmount = trailPatterns.includes(this.currentPattern)
       ? 0.12
       : 0.06;
     ctx.fillStyle = `rgba(0, 0, 0, ${fadeAmount + audioIntensity * 0.04})`;
->>>>>>> 80845a12678c9a81bcc15e04f2e9f22270764176
     ctx.fillRect(0, 0, this.width, this.height);
 
     if (this.isTransitioning) {
@@ -2371,13 +2375,21 @@ export class FlowFieldRenderer {
         this.renderDragonEye(audioIntensity, bassIntensity, midIntensity);
         break;
       case "ancientGlyphs":
-        this.renderAncientGlyphs(audioIntensity, bassIntensity, trebleIntensity);
+        this.renderAncientGlyphs(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
         break;
       case "timeWheel":
         this.renderTimeWheel(audioIntensity, bassIntensity, midIntensity);
         break;
       case "astralProjection":
-        this.renderAstralProjection(audioIntensity, bassIntensity, trebleIntensity);
+        this.renderAstralProjection(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
         break;
       case "ethericField":
         this.renderEthericField(audioIntensity, bassIntensity, midIntensity);
@@ -2401,10 +2413,18 @@ export class FlowFieldRenderer {
         this.renderWyrdWeb(audioIntensity, bassIntensity, midIntensity);
         break;
       case "spiritualGateway":
-        this.renderSpiritualGateway(audioIntensity, bassIntensity, midIntensity);
+        this.renderSpiritualGateway(
+          audioIntensity,
+          bassIntensity,
+          midIntensity,
+        );
         break;
       case "akashicRecords":
-        this.renderAkashicRecords(audioIntensity, bassIntensity, trebleIntensity);
+        this.renderAkashicRecords(
+          audioIntensity,
+          bassIntensity,
+          trebleIntensity,
+        );
         break;
       case "sacredGeometry":
         this.renderSacredGeometry(audioIntensity, bassIntensity, midIntensity);
@@ -2692,7 +2712,11 @@ export class FlowFieldRenderer {
   // MYSTICAL PATTERN RENDERERS
   // ============================================
 
-  private renderPentagram(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderPentagram(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const points = 5;
     const outerRadius = 200 + bassIntensity * 150;
@@ -2734,7 +2758,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderRunes(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderRunes(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const runeCount = 8;
     const radius = 250 + bassIntensity * 100;
@@ -2783,13 +2811,18 @@ export class FlowFieldRenderer {
     }
   }
 
-  private renderSigils(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderSigils(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const sigilCount = 12;
 
     for (let i = 0; i < sigilCount; i++) {
       const angle = (Math.PI * 2 * i) / sigilCount + this.time * 0.001;
-      const radius = 200 + Math.sin(this.time * 0.002 + i) * 50 + bassIntensity * 80;
+      const radius =
+        200 + Math.sin(this.time * 0.002 + i) * 50 + bassIntensity * 80;
       const x = this.centerX + Math.cos(angle) * radius;
       const y = this.centerY + Math.sin(angle) * radius;
       const size = 30 + midIntensity * 25;
@@ -2820,7 +2853,11 @@ export class FlowFieldRenderer {
     }
   }
 
-  private renderOuroboros(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderOuroboros(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const radius = 250 + bassIntensity * 100;
     const segments = 60;
@@ -2851,7 +2888,12 @@ export class FlowFieldRenderer {
       if (i % 8 === 0) {
         const scaleSize = thickness * 0.5;
         ctx.fillStyle = `hsla(${hue + 30}, 85%, 70%, 0.5)`;
-        ctx.fillRect(x - scaleSize / 2, y - scaleSize / 2, scaleSize, scaleSize);
+        ctx.fillRect(
+          x - scaleSize / 2,
+          y - scaleSize / 2,
+          scaleSize,
+          scaleSize,
+        );
       }
     }
 
@@ -2871,42 +2913,69 @@ export class FlowFieldRenderer {
 
     // Eyes
     ctx.fillStyle = `hsla(${this.hueBase + 180}, 90%, 70%, 0.9)`;
-    ctx.fillRect(-thickness * 0.5, -thickness * 0.3, thickness * 0.3, thickness * 0.3);
-    ctx.fillRect(thickness * 0.2, -thickness * 0.3, thickness * 0.3, thickness * 0.3);
+    ctx.fillRect(
+      -thickness * 0.5,
+      -thickness * 0.3,
+      thickness * 0.3,
+      thickness * 0.3,
+    );
+    ctx.fillRect(
+      thickness * 0.2,
+      -thickness * 0.3,
+      thickness * 0.3,
+      thickness * 0.3,
+    );
 
     ctx.restore();
     ctx.restore();
   }
 
-  private renderChakras(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderChakras(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const chakraColors = [
-      { h: 0, name: "Root" },        // Red
-      { h: 30, name: "Sacral" },     // Orange
-      { h: 60, name: "Solar" },      // Yellow
-      { h: 120, name: "Heart" },     // Green
-      { h: 200, name: "Throat" },    // Blue
+      { h: 0, name: "Root" }, // Red
+      { h: 30, name: "Sacral" }, // Orange
+      { h: 60, name: "Solar" }, // Yellow
+      { h: 120, name: "Heart" }, // Green
+      { h: 200, name: "Throat" }, // Blue
       { h: 270, name: "Third Eye" }, // Indigo
-      { h: 300, name: "Crown" }      // Violet
+      { h: 300, name: "Crown" }, // Violet
     ];
 
     const spacing = this.height / (chakraColors.length + 1);
 
     chakraColors.forEach((chakra, i) => {
       const y = spacing * (i + 1);
-      const size = 40 + audioIntensity * 30 + (i === 3 ? bassIntensity * 20 : 0);
+      const size =
+        40 + audioIntensity * 30 + (i === 3 ? bassIntensity * 20 : 0);
       const pulse = Math.sin(this.time * 0.005 + i * 0.5) * 10;
 
       // Outer glow
       const gradient = ctx.createRadialGradient(
-        this.centerX, y, size * 0.5,
-        this.centerX, y, size + pulse + 40
+        this.centerX,
+        y,
+        size * 0.5,
+        this.centerX,
+        y,
+        size + pulse + 40,
       );
-      gradient.addColorStop(0, `hsla(${chakra.h}, 90%, 70%, ${0.6 + trebleIntensity * 0.4})`);
+      gradient.addColorStop(
+        0,
+        `hsla(${chakra.h}, 90%, 70%, ${0.6 + trebleIntensity * 0.4})`,
+      );
       gradient.addColorStop(1, `hsla(${chakra.h}, 90%, 60%, 0)`);
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(this.centerX - size - 50, y - size - 50, (size + 50) * 2, (size + 50) * 2);
+      ctx.fillRect(
+        this.centerX - size - 50,
+        y - size - 50,
+        (size + 50) * 2,
+        (size + 50) * 2,
+      );
 
       // Main chakra circle
       ctx.fillStyle = `hsla(${chakra.h}, 85%, 65%, 0.8)`;
@@ -2948,13 +3017,17 @@ export class FlowFieldRenderer {
     ctx.setLineDash([]);
   }
 
-  private renderAlchemy(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderAlchemy(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const symbols = [
       { name: "Fire", rotation: 0 },
       { name: "Water", rotation: Math.PI },
       { name: "Air", rotation: Math.PI * 0.5 },
-      { name: "Earth", rotation: Math.PI * 1.5 }
+      { name: "Earth", rotation: Math.PI * 1.5 },
     ];
 
     const radius = 180 + bassIntensity * 80;
@@ -3010,7 +3083,13 @@ export class FlowFieldRenderer {
     ctx.strokeStyle = `hsla(${this.hueBase}, 80%, 60%, 0.6)`;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(this.centerX, this.centerY, 60 + audioIntensity * 40, 0, Math.PI * 2);
+    ctx.arc(
+      this.centerX,
+      this.centerY,
+      60 + audioIntensity * 40,
+      0,
+      Math.PI * 2,
+    );
     ctx.stroke();
 
     // Philosophical Mercury symbol
@@ -3031,7 +3110,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderCelestial(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderCelestial(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const orbits = 6;
 
@@ -3058,8 +3141,18 @@ export class FlowFieldRenderer {
         const hue = (this.hueBase + orbit * 40 + i * 20) % 360;
 
         // Planet glow
-        const gradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, size * 3);
-        gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.6 + midIntensity * 0.4})`);
+        const gradient = ctx.createRadialGradient(
+          x,
+          y,
+          size * 0.3,
+          x,
+          y,
+          size * 3,
+        );
+        gradient.addColorStop(
+          0,
+          `hsla(${hue}, 90%, 70%, ${0.6 + midIntensity * 0.4})`,
+        );
         gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
         ctx.fillStyle = gradient;
         ctx.fillRect(x - size * 3, y - size * 3, size * 6, size * 6);
@@ -3084,8 +3177,12 @@ export class FlowFieldRenderer {
     // Central sun
     const sunSize = 40 + audioIntensity * 30;
     const gradient = ctx.createRadialGradient(
-      this.centerX, this.centerY, sunSize * 0.5,
-      this.centerX, this.centerY, sunSize * 2
+      this.centerX,
+      this.centerY,
+      sunSize * 0.5,
+      this.centerX,
+      this.centerY,
+      sunSize * 2,
     );
     gradient.addColorStop(0, `hsla(${this.hueBase + 60}, 100%, 80%, 1)`);
     gradient.addColorStop(0.5, `hsla(${this.hueBase + 40}, 90%, 70%, 0.6)`);
@@ -3096,7 +3193,7 @@ export class FlowFieldRenderer {
       this.centerX - sunSize * 2,
       this.centerY - sunSize * 2,
       sunSize * 4,
-      sunSize * 4
+      sunSize * 4,
     );
 
     // Sun rays
@@ -3116,14 +3213,19 @@ export class FlowFieldRenderer {
     }
   }
 
-  private renderPortal(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderPortal(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const rings = 20;
 
     for (let i = 0; i < rings; i++) {
       const progress = i / rings;
       const radius = 50 + i * (15 + bassIntensity * 10);
-      const rotation = this.time * 0.002 * (i % 2 === 0 ? 1 : -1) + progress * Math.PI;
+      const rotation =
+        this.time * 0.002 * (i % 2 === 0 ? 1 : -1) + progress * Math.PI;
       const hue = (this.hueBase + progress * 240 + this.time * 0.5) % 360;
       const alpha = 0.3 + (1 - progress) * 0.5 + audioIntensity * 0.2;
 
@@ -3141,7 +3243,10 @@ export class FlowFieldRenderer {
       for (let j = 0; j <= segments; j++) {
         const segmentProgress = j / segments;
         const angle = segmentProgress * Math.PI * 2;
-        const r = radius * (1 + Math.sin(segmentProgress * Math.PI * 6 + this.time * 0.01) * 0.1);
+        const r =
+          radius *
+          (1 +
+            Math.sin(segmentProgress * Math.PI * 6 + this.time * 0.01) * 0.1);
         const x = Math.cos(angle) * r;
         const y = Math.sin(angle) * r;
 
@@ -3171,8 +3276,12 @@ export class FlowFieldRenderer {
     // Central void
     const voidSize = 30 + bassIntensity * 20;
     const voidGradient = ctx.createRadialGradient(
-      this.centerX, this.centerY, 0,
-      this.centerX, this.centerY, voidSize
+      this.centerX,
+      this.centerY,
+      0,
+      this.centerX,
+      this.centerY,
+      voidSize,
     );
     voidGradient.addColorStop(0, `rgba(0, 0, 0, 1)`);
     voidGradient.addColorStop(0.7, `rgba(0, 0, 10, 0.9)`);
@@ -3184,7 +3293,11 @@ export class FlowFieldRenderer {
     ctx.fill();
   }
 
-  private renderDreamcatcher(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderDreamcatcher(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const outerRadius = 200 + bassIntensity * 80;
 
@@ -3282,7 +3395,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderPhoenix(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderPhoenix(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const wingSpan = 300 + bassIntensity * 100;
 
@@ -3303,13 +3420,16 @@ export class FlowFieldRenderer {
         const featherProgress = i / featherCount;
         const featherAngle = -Math.PI * 0.4 + featherProgress * Math.PI * 0.8;
         const featherLength = wingSpan * (0.5 + featherProgress * 0.5);
-        const hue = (this.hueBase + i * 15 + this.time * 0.5) % 60 + 0; // Red-orange-yellow
+        const hue = ((this.hueBase + i * 15 + this.time * 0.5) % 60) + 0; // Red-orange-yellow
 
         ctx.save();
         ctx.rotate(featherAngle);
 
         const gradient = ctx.createLinearGradient(0, 0, featherLength, 0);
-        gradient.addColorStop(0, `hsla(${hue}, 90%, 60%, ${0.8 + audioIntensity * 0.2})`);
+        gradient.addColorStop(
+          0,
+          `hsla(${hue}, 90%, 60%, ${0.8 + audioIntensity * 0.2})`,
+        );
         gradient.addColorStop(0.5, `hsla(${hue + 20}, 95%, 65%, 0.6)`);
         gradient.addColorStop(1, `hsla(${hue + 40}, 100%, 70%, 0.2)`);
 
@@ -3356,7 +3476,10 @@ export class FlowFieldRenderer {
     // Tail flames
     const tailCount = 12;
     for (let i = 0; i < tailCount; i++) {
-      const tailAngle = Math.PI / 2 + (i - tailCount / 2) * 0.1 + Math.sin(this.time * 0.01 + i) * 0.2;
+      const tailAngle =
+        Math.PI / 2 +
+        (i - tailCount / 2) * 0.1 +
+        Math.sin(this.time * 0.01 + i) * 0.2;
       const tailLength = 100 + i * 15 + bassIntensity * 50;
       const hue = (this.hueBase + i * 5) % 60;
 
@@ -3382,7 +3505,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderSerpent(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderSerpent(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const segments = 40;
     const amplitude = 100 + bassIntensity * 60;
@@ -3396,7 +3523,8 @@ export class FlowFieldRenderer {
 
       const nextProgress = (i + 1) / segments;
       const nextPhase = this.time * 0.01 - nextProgress * Math.PI * 2;
-      const nextX = this.centerX + Math.cos(nextPhase) * (200 + nextProgress * 100);
+      const nextX =
+        this.centerX + Math.cos(nextPhase) * (200 + nextProgress * 100);
       const nextY = this.centerY + Math.sin(nextPhase * 1.5) * amplitude;
 
       const size = 20 - progress * 15 + midIntensity * 10;
@@ -3433,8 +3561,20 @@ export class FlowFieldRenderer {
         const eyeOffset = headSize * 0.4;
         ctx.fillStyle = `hsla(${(hue + 180) % 360}, 90%, 70%, 0.9)`;
         ctx.beginPath();
-        ctx.arc(x - eyeOffset, y - eyeOffset * 0.5, headSize * 0.2, 0, Math.PI * 2);
-        ctx.arc(x + eyeOffset, y - eyeOffset * 0.5, headSize * 0.2, 0, Math.PI * 2);
+        ctx.arc(
+          x - eyeOffset,
+          y - eyeOffset * 0.5,
+          headSize * 0.2,
+          0,
+          Math.PI * 2,
+        );
+        ctx.arc(
+          x + eyeOffset,
+          y - eyeOffset * 0.5,
+          headSize * 0.2,
+          0,
+          Math.PI * 2,
+        );
         ctx.fill();
 
         // Forked tongue
@@ -3460,7 +3600,11 @@ export class FlowFieldRenderer {
     }
   }
 
-  private renderCrystalGrid(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderCrystalGrid(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const gridSize = 6;
     const spacing = Math.min(this.width, this.height) / gridSize;
@@ -3470,13 +3614,25 @@ export class FlowFieldRenderer {
       for (let col = 0; col < gridSize; col++) {
         const x = (col + 0.5) * spacing;
         const y = (row + 0.5) * spacing;
-        const pulse = Math.sin(this.time * 0.005 + row * 0.3 + col * 0.3) * 0.5 + 0.5;
+        const pulse =
+          Math.sin(this.time * 0.005 + row * 0.3 + col * 0.3) * 0.5 + 0.5;
         const size = 20 + pulse * 20 + audioIntensity * 15;
-        const hue = (this.hueBase + row * 30 + col * 30 + this.time * 0.2) % 360;
+        const hue =
+          (this.hueBase + row * 30 + col * 30 + this.time * 0.2) % 360;
 
         // Crystal glow
-        const gradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, size * 2);
-        gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.6 + bassIntensity * 0.4})`);
+        const gradient = ctx.createRadialGradient(
+          x,
+          y,
+          size * 0.3,
+          x,
+          y,
+          size * 2,
+        );
+        gradient.addColorStop(
+          0,
+          `hsla(${hue}, 90%, 70%, ${0.6 + bassIntensity * 0.4})`,
+        );
         gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
 
         ctx.fillStyle = gradient;
@@ -3545,7 +3701,11 @@ export class FlowFieldRenderer {
     }
   }
 
-  private renderMoonPhases(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderMoonPhases(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const phases = 8;
     const radius = 200 + bassIntensity * 80;
@@ -3568,12 +3728,27 @@ export class FlowFieldRenderer {
       const phase = i / phases;
 
       // Moon glow
-      const gradient = ctx.createRadialGradient(x, y, moonSize * 0.5, x, y, moonSize * 2);
-      gradient.addColorStop(0, `hsla(${this.hueBase + 180}, 80%, 80%, ${0.6 + audioIntensity * 0.4})`);
+      const gradient = ctx.createRadialGradient(
+        x,
+        y,
+        moonSize * 0.5,
+        x,
+        y,
+        moonSize * 2,
+      );
+      gradient.addColorStop(
+        0,
+        `hsla(${this.hueBase + 180}, 80%, 80%, ${0.6 + audioIntensity * 0.4})`,
+      );
       gradient.addColorStop(1, `hsla(${this.hueBase + 180}, 70%, 70%, 0)`);
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(x - moonSize * 2, y - moonSize * 2, moonSize * 4, moonSize * 4);
+      ctx.fillRect(
+        x - moonSize * 2,
+        y - moonSize * 2,
+        moonSize * 4,
+        moonSize * 4,
+      );
 
       // Full moon circle
       ctx.fillStyle = `hsla(${this.hueBase + 180}, 70%, 80%, 0.9)`;
@@ -3616,11 +3791,21 @@ export class FlowFieldRenderer {
     // Central celestial point
     ctx.fillStyle = `hsla(${this.hueBase}, 80%, 60%, ${0.6 + audioIntensity * 0.4})`;
     ctx.beginPath();
-    ctx.arc(this.centerX, this.centerY, 15 + bassIntensity * 10, 0, Math.PI * 2);
+    ctx.arc(
+      this.centerX,
+      this.centerY,
+      15 + bassIntensity * 10,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 
-  private renderAstrolabe(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderAstrolabe(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const outerRadius = 280 + bassIntensity * 60;
 
@@ -3705,7 +3890,8 @@ export class FlowFieldRenderer {
 
       // Planets on ring
       for (let p = 0; p < planetCount; p++) {
-        const pAngle = (Math.PI * 2 * p) / planetCount - this.time * 0.001 * ring;
+        const pAngle =
+          (Math.PI * 2 * p) / planetCount - this.time * 0.001 * ring;
         const px = Math.cos(pAngle) * ringRadius;
         const py = Math.sin(pAngle) * ringRadius;
         const pSize = 6 + audioIntensity * 5;
@@ -3750,7 +3936,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderTarot(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderTarot(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const cardCount = 7;
     const cardWidth = 80 + bassIntensity * 30;
@@ -3770,8 +3960,18 @@ export class FlowFieldRenderer {
 
       // Card glow
       const glowSize = cardWidth * 0.6;
-      const gradient = ctx.createRadialGradient(0, 0, glowSize * 0.5, 0, 0, glowSize);
-      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`);
+      const gradient = ctx.createRadialGradient(
+        0,
+        0,
+        glowSize * 0.5,
+        0,
+        0,
+        glowSize,
+      );
+      gradient.addColorStop(
+        0,
+        `hsla(${hue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`,
+      );
       gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
 
       ctx.fillStyle = gradient;
@@ -3795,7 +3995,7 @@ export class FlowFieldRenderer {
         -cardWidth / 2 + 5,
         -cardHeight / 2 + 5,
         cardWidth - 10,
-        cardHeight - 10
+        cardHeight - 10,
       );
 
       // Central symbol
@@ -3813,8 +4013,14 @@ export class FlowFieldRenderer {
           ctx.arc(0, 0, symbolSize, 0, Math.PI * 2);
           for (let r = 0; r < 8; r++) {
             const rAngle = (Math.PI * 2 * r) / 8;
-            ctx.moveTo(Math.cos(rAngle) * symbolSize, Math.sin(rAngle) * symbolSize);
-            ctx.lineTo(Math.cos(rAngle) * symbolSize * 1.4, Math.sin(rAngle) * symbolSize * 1.4);
+            ctx.moveTo(
+              Math.cos(rAngle) * symbolSize,
+              Math.sin(rAngle) * symbolSize,
+            );
+            ctx.lineTo(
+              Math.cos(rAngle) * symbolSize * 1.4,
+              Math.sin(rAngle) * symbolSize * 1.4,
+            );
           }
           break;
         case 1: // Moon
@@ -3862,7 +4068,11 @@ export class FlowFieldRenderer {
     }
   }
 
-  private renderKabbalah(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderKabbalah(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
 
     // Tree of Life sephirot positions (traditional layout)
@@ -3876,14 +4086,28 @@ export class FlowFieldRenderer {
       { x: -80, y: 80, name: "Netzach", hueOffset: 216 },
       { x: 80, y: 80, name: "Hod", hueOffset: 252 },
       { x: 0, y: 140, name: "Yesod", hueOffset: 288 },
-      { x: 0, y: 220, name: "Malkuth", hueOffset: 324 }
+      { x: 0, y: 220, name: "Malkuth", hueOffset: 324 },
     ];
 
     // Paths connecting sephirot
     const paths = [
-      [0, 1], [0, 2], [1, 2], [1, 3], [2, 4], [3, 4],
-      [3, 5], [4, 5], [3, 6], [4, 7], [5, 6], [5, 7],
-      [6, 7], [6, 8], [7, 8], [8, 9], [5, 8]
+      [0, 1],
+      [0, 2],
+      [1, 2],
+      [1, 3],
+      [2, 4],
+      [3, 4],
+      [3, 5],
+      [4, 5],
+      [3, 6],
+      [4, 7],
+      [5, 6],
+      [5, 7],
+      [6, 7],
+      [6, 8],
+      [7, 8],
+      [8, 9],
+      [5, 8],
     ];
 
     ctx.save();
@@ -3915,16 +4139,24 @@ export class FlowFieldRenderer {
 
     // Draw sephirot
     sephirot.forEach((sephira, index) => {
-      const size = 30 + (index === 5 ? bassIntensity * 20 : trebleIntensity * 10);
+      const size =
+        30 + (index === 5 ? bassIntensity * 20 : trebleIntensity * 10);
       const hue = (this.hueBase + sephira.hueOffset) % 360;
       const pulse = Math.sin(this.time * 0.004 + index * 0.7) * 0.2 + 0.8;
 
       // Glow
       const gradient = ctx.createRadialGradient(
-        sephira.x, sephira.y, size * 0.3,
-        sephira.x, sephira.y, size * 2
+        sephira.x,
+        sephira.y,
+        size * 0.3,
+        sephira.x,
+        sephira.y,
+        size * 2,
       );
-      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.6 * pulse + audioIntensity * 0.3})`);
+      gradient.addColorStop(
+        0,
+        `hsla(${hue}, 90%, 70%, ${0.6 * pulse + audioIntensity * 0.3})`,
+      );
       gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
 
       ctx.fillStyle = gradient;
@@ -3932,7 +4164,7 @@ export class FlowFieldRenderer {
         sephira.x - size * 2,
         sephira.y - size * 2,
         size * 4,
-        size * 4
+        size * 4,
       );
 
       // Sephira circle
@@ -3970,7 +4202,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderMerkaba(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderMerkaba(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const size = 150 + bassIntensity * 80;
 
@@ -4045,8 +4281,18 @@ export class FlowFieldRenderer {
     ctx.restore();
 
     // Energy sphere
-    const sphereGradient = ctx.createRadialGradient(0, 0, size * 0.3, 0, 0, size * 0.7);
-    sphereGradient.addColorStop(0, `hsla(${this.hueBase + 120}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`);
+    const sphereGradient = ctx.createRadialGradient(
+      0,
+      0,
+      size * 0.3,
+      0,
+      0,
+      size * 0.7,
+    );
+    sphereGradient.addColorStop(
+      0,
+      `hsla(${this.hueBase + 120}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`,
+    );
     sphereGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 80%, 60%, 0)`);
 
     ctx.fillStyle = sphereGradient;
@@ -4073,7 +4319,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderFlowerOfLife(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderFlowerOfLife(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const radius = 50 + midIntensity * 20;
     const rings = 2;
@@ -4146,7 +4396,7 @@ export class FlowFieldRenderer {
       const angle = (Math.PI * 2 * i) / 6;
       hexPoints.push({
         x: Math.cos(angle) * radius * 2,
-        y: Math.sin(angle) * radius * 2
+        y: Math.sin(angle) * radius * 2,
       });
     }
 
@@ -4161,7 +4411,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderSriYantra(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderSriYantra(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const baseSize = 200 + bassIntensity * 60;
 
@@ -4183,7 +4437,7 @@ export class FlowFieldRenderer {
       [0, -gateOffset],
       [0, gateOffset],
       [-gateOffset, 0],
-      [gateOffset, 0]
+      [gateOffset, 0],
     ];
     gates.forEach(([x, y]) => {
       ctx.fillRect(x - gateSize / 2, y - gateSize / 2, gateSize, gateSize);
@@ -4249,7 +4503,7 @@ export class FlowFieldRenderer {
       { rotation: Math.PI * 0.2, inverted: false, scale: 0.95, hue: 200 },
       { rotation: Math.PI * 0.6, inverted: false, scale: 0.8, hue: 240 },
       { rotation: Math.PI, inverted: false, scale: 0.65, hue: 280 },
-      { rotation: Math.PI * 1.4, inverted: false, scale: 0.5, hue: 320 }
+      { rotation: Math.PI * 1.4, inverted: false, scale: 0.5, hue: 320 },
     ];
 
     triangles.forEach((tri) => {
@@ -4282,9 +4536,19 @@ export class FlowFieldRenderer {
 
     // Central bindu (point)
     const binduSize = 12 + bassIntensity * 10;
-    const binduGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, binduSize * 2);
+    const binduGradient = ctx.createRadialGradient(
+      0,
+      0,
+      0,
+      0,
+      0,
+      binduSize * 2,
+    );
     binduGradient.addColorStop(0, `hsla(${this.hueBase + 60}, 100%, 80%, 1)`);
-    binduGradient.addColorStop(0.5, `hsla(${this.hueBase + 40}, 90%, 70%, 0.7)`);
+    binduGradient.addColorStop(
+      0.5,
+      `hsla(${this.hueBase + 40}, 90%, 70%, 0.7)`,
+    );
     binduGradient.addColorStop(1, `hsla(${this.hueBase + 20}, 80%, 60%, 0)`);
 
     ctx.fillStyle = binduGradient;
@@ -4300,7 +4564,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderMetatron(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderMetatron(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const radius = 180 + bassIntensity * 60;
 
@@ -4322,7 +4590,7 @@ export class FlowFieldRenderer {
       { x: radius * 0.433, y: radius * 0.25 },
       { x: 0, y: radius * 0.5 },
       { x: -radius * 0.433, y: radius * 0.25 },
-      { x: -radius * 0.433, y: -radius * 0.25 }
+      { x: -radius * 0.433, y: -radius * 0.25 },
     ];
 
     const circleRadius = radius * 0.2;
@@ -4359,10 +4627,17 @@ export class FlowFieldRenderer {
 
       // Glow
       const gradient = ctx.createRadialGradient(
-        pos.x, pos.y, size * 0.3,
-        pos.x, pos.y, size * 2
+        pos.x,
+        pos.y,
+        size * 0.3,
+        pos.x,
+        pos.y,
+        size * 2,
       );
-      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.5 + audioIntensity * 0.3})`);
+      gradient.addColorStop(
+        0,
+        `hsla(${hue}, 90%, 70%, ${0.5 + audioIntensity * 0.3})`,
+      );
       gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
 
       ctx.fillStyle = gradient;
@@ -4392,7 +4667,7 @@ export class FlowFieldRenderer {
       const angle = (Math.PI * 2 * i) / 6;
       hexPoints.push({
         x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius
+        y: Math.sin(angle) * radius,
       });
     }
 
@@ -4432,7 +4707,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderVesicaPiscis(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderVesicaPiscis(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const radius = 150 + bassIntensity * 60;
     const separation = radius * 1.0; // Separation for classic vesica piscis
@@ -4444,8 +4723,18 @@ export class FlowFieldRenderer {
     const leftX = -separation / 2;
     const leftHue = this.hueBase;
 
-    const leftGradient = ctx.createRadialGradient(leftX, 0, radius * 0.3, leftX, 0, radius);
-    leftGradient.addColorStop(0, `hsla(${leftHue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`);
+    const leftGradient = ctx.createRadialGradient(
+      leftX,
+      0,
+      radius * 0.3,
+      leftX,
+      0,
+      radius,
+    );
+    leftGradient.addColorStop(
+      0,
+      `hsla(${leftHue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`,
+    );
     leftGradient.addColorStop(1, `hsla(${leftHue}, 80%, 60%, 0.1)`);
 
     ctx.fillStyle = leftGradient;
@@ -4461,8 +4750,18 @@ export class FlowFieldRenderer {
     const rightX = separation / 2;
     const rightHue = (this.hueBase + 120) % 360;
 
-    const rightGradient = ctx.createRadialGradient(rightX, 0, radius * 0.3, rightX, 0, radius);
-    rightGradient.addColorStop(0, `hsla(${rightHue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`);
+    const rightGradient = ctx.createRadialGradient(
+      rightX,
+      0,
+      radius * 0.3,
+      rightX,
+      0,
+      radius,
+    );
+    rightGradient.addColorStop(
+      0,
+      `hsla(${rightHue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`,
+    );
     rightGradient.addColorStop(1, `hsla(${rightHue}, 80%, 60%, 0.1)`);
 
     ctx.fillStyle = rightGradient;
@@ -4481,8 +4780,18 @@ export class FlowFieldRenderer {
     ctx.clip();
 
     const vesicaHue = (this.hueBase + 240) % 360;
-    const vesicaGradient = ctx.createRadialGradient(0, 0, 10, 0, 0, radius * 0.7);
-    vesicaGradient.addColorStop(0, `hsla(${vesicaHue}, 95%, 75%, ${0.6 + trebleIntensity * 0.4})`);
+    const vesicaGradient = ctx.createRadialGradient(
+      0,
+      0,
+      10,
+      0,
+      0,
+      radius * 0.7,
+    );
+    vesicaGradient.addColorStop(
+      0,
+      `hsla(${vesicaHue}, 95%, 75%, ${0.6 + trebleIntensity * 0.4})`,
+    );
     vesicaGradient.addColorStop(1, `hsla(${vesicaHue}, 85%, 65%, 0.2)`);
 
     ctx.fillStyle = vesicaGradient;
@@ -4493,7 +4802,9 @@ export class FlowFieldRenderer {
     ctx.restore();
 
     // Outline the vesica piscis
-    const intersectionHeight = Math.sqrt(radius * radius - (separation / 2) * (separation / 2));
+    const intersectionHeight = Math.sqrt(
+      radius * radius - (separation / 2) * (separation / 2),
+    );
 
     ctx.strokeStyle = `hsla(${vesicaHue}, 90%, 70%, ${0.9 + audioIntensity * 0.1})`;
     ctx.lineWidth = 4;
@@ -4530,7 +4841,7 @@ export class FlowFieldRenderer {
     const points = [
       { x: 0, y: -intersectionHeight },
       { x: 0, y: intersectionHeight },
-      { x: 0, y: 0 }
+      { x: 0, y: 0 },
     ];
 
     points.forEach((point, i) => {
@@ -4570,7 +4881,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderTorusField(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderTorusField(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const majorRadius = 180 + bassIntensity * 70;
     const minorRadius = 60 + midIntensity * 30;
@@ -4592,12 +4907,17 @@ export class FlowFieldRenderer {
       const ringRadius = minorRadius * Math.abs(Math.sin(angle));
 
       const hue = (this.hueBase + progress * 240) % 360;
-      const alpha = 0.3 + (1 - Math.abs(Math.cos(angle))) * 0.5 + audioIntensity * 0.2;
+      const alpha =
+        0.3 + (1 - Math.abs(Math.cos(angle))) * 0.5 + audioIntensity * 0.2;
 
       // Ring glow
       const gradient = ctx.createRadialGradient(
-        ringCenterX, ringCenterY, ringRadius * 0.3,
-        ringCenterX, ringCenterY, ringRadius * 1.5
+        ringCenterX,
+        ringCenterY,
+        ringRadius * 0.3,
+        ringCenterX,
+        ringCenterY,
+        ringRadius * 1.5,
       );
       gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${alpha})`);
       gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
@@ -4607,7 +4927,7 @@ export class FlowFieldRenderer {
         ringCenterX - ringRadius * 1.5,
         ringCenterY - ringRadius * 1.5,
         ringRadius * 3,
-        ringRadius * 3
+        ringRadius * 3,
       );
 
       // Ring outline
@@ -4615,7 +4935,15 @@ export class FlowFieldRenderer {
       ctx.lineWidth = 2 + Math.abs(Math.sin(angle)) * 3;
 
       ctx.beginPath();
-      ctx.ellipse(ringCenterX, ringCenterY, ringRadius, ringRadius * 0.5, angle, 0, Math.PI * 2);
+      ctx.ellipse(
+        ringCenterX,
+        ringCenterY,
+        ringRadius,
+        ringRadius * 0.5,
+        angle,
+        0,
+        Math.PI * 2,
+      );
       ctx.stroke();
 
       // Energy particles flowing along torus
@@ -4679,7 +5007,10 @@ export class FlowFieldRenderer {
     const vortexSize = 30 + bassIntensity * 20;
     const vortexGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, vortexSize);
     vortexGradient.addColorStop(0, `hsla(${this.hueBase + 120}, 95%, 75%, 1)`);
-    vortexGradient.addColorStop(0.6, `hsla(${this.hueBase + 90}, 85%, 65%, 0.6)`);
+    vortexGradient.addColorStop(
+      0.6,
+      `hsla(${this.hueBase + 90}, 85%, 65%, 0.6)`,
+    );
     vortexGradient.addColorStop(1, `hsla(${this.hueBase + 60}, 75%, 55%, 0)`);
 
     ctx.fillStyle = vortexGradient;
@@ -4690,7 +5021,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderCosmicEgg(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderCosmicEgg(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     const eggWidth = 220 + bassIntensity * 80;
     const eggHeight = eggWidth * 1.4;
@@ -4704,7 +5039,8 @@ export class FlowFieldRenderer {
     for (let i = 0; i < fieldLayers; i++) {
       const scale = 1 + (i / fieldLayers) * 0.5;
       const hue = (this.hueBase + i * 30 + this.time * 0.3) % 360;
-      const alpha = 0.1 + (fieldLayers - i) / fieldLayers * 0.3 + audioIntensity * 0.1;
+      const alpha =
+        0.1 + ((fieldLayers - i) / fieldLayers) * 0.3 + audioIntensity * 0.1;
 
       ctx.strokeStyle = `hsla(${hue}, 80%, 65%, ${alpha})`;
       ctx.lineWidth = 2;
@@ -4715,7 +5051,14 @@ export class FlowFieldRenderer {
     }
 
     // Main egg body with gradient
-    const eggGradient = ctx.createRadialGradient(0, -eggHeight * 0.2, 0, 0, 0, eggHeight * 0.6);
+    const eggGradient = ctx.createRadialGradient(
+      0,
+      -eggHeight * 0.2,
+      0,
+      0,
+      0,
+      eggHeight * 0.6,
+    );
     eggGradient.addColorStop(0, `hsla(${this.hueBase}, 70%, 50%, 0.8)`);
     eggGradient.addColorStop(0.5, `hsla(${this.hueBase + 40}, 75%, 55%, 0.6)`);
     eggGradient.addColorStop(1, `hsla(${this.hueBase + 80}, 80%, 60%, 0.4)`);
@@ -4769,14 +5112,19 @@ export class FlowFieldRenderer {
     // Stars/galaxies within
     const starCount = 50;
     for (let i = 0; i < starCount; i++) {
-      const angle = (Math.PI * 2 * i) / starCount + this.time * 0.001 * (i % 2 === 0 ? 1 : -1);
+      const angle =
+        (Math.PI * 2 * i) / starCount +
+        this.time * 0.001 * (i % 2 === 0 ? 1 : -1);
       const radiusProgress = (i % 10) / 10;
       const radius = radiusProgress * maxRadius;
       const x = Math.cos(angle) * radius;
       const y = Math.sin(angle) * radius * (eggHeight / eggWidth);
 
       // Only draw stars inside the egg
-      if ((x * x) / (eggWidth * eggWidth) + (y * y) / (eggHeight * eggHeight) < 0.64) {
+      if (
+        (x * x) / (eggWidth * eggWidth) + (y * y) / (eggHeight * eggHeight) <
+        0.64
+      ) {
         const starSize = 2 + Math.random() * 3 + midIntensity * 3;
         const starHue = (this.hueBase + i * 7) % 360;
         const twinkle = Math.sin(this.time * 0.01 + i) * 0.3 + 0.7;
@@ -4790,7 +5138,14 @@ export class FlowFieldRenderer {
 
     // Central light (primordial essence)
     const coreSize = 40 + bassIntensity * 30;
-    const coreGradient = ctx.createRadialGradient(0, 0, coreSize * 0.2, 0, 0, coreSize);
+    const coreGradient = ctx.createRadialGradient(
+      0,
+      0,
+      coreSize * 0.2,
+      0,
+      0,
+      coreSize,
+    );
     coreGradient.addColorStop(0, `hsla(${this.hueBase + 60}, 100%, 90%, 1)`);
     coreGradient.addColorStop(0.4, `hsla(${this.hueBase + 40}, 95%, 80%, 0.8)`);
     coreGradient.addColorStop(0.7, `hsla(${this.hueBase + 20}, 90%, 70%, 0.5)`);
@@ -4810,7 +5165,12 @@ export class FlowFieldRenderer {
       ctx.save();
       ctx.rotate(rayAngle);
 
-      const rayGradient = ctx.createLinearGradient(coreSize * 0.5, 0, rayLength, 0);
+      const rayGradient = ctx.createLinearGradient(
+        coreSize * 0.5,
+        0,
+        rayLength,
+        0,
+      );
       rayGradient.addColorStop(0, `hsla(${this.hueBase + 45}, 95%, 75%, 0.8)`);
       rayGradient.addColorStop(1, `hsla(${this.hueBase + 60}, 90%, 70%, 0)`);
 
@@ -4830,7 +5190,8 @@ export class FlowFieldRenderer {
     if (audioIntensity > 0.7) {
       const cracks = 8;
       for (let i = 0; i < cracks; i++) {
-        const crackAngle = (Math.PI * 2 * i) / cracks + Math.sin(this.time * 0.01) * 0.1;
+        const crackAngle =
+          (Math.PI * 2 * i) / cracks + Math.sin(this.time * 0.01) * 0.1;
         const crackLength = eggHeight * 0.6;
 
         ctx.save();
@@ -4858,14 +5219,31 @@ export class FlowFieldRenderer {
 
     ctx.restore();
   }
-  private renderEnochian(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderEnochian(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
     const gridSize = 4;
     const cellSize = Math.min(this.width, this.height) / (gridSize + 2);
-    const enochianChars = ['⊕', '⊗', '⊙', '☉', '☊', '☋', '☌', '☍', '⚹', '⚺', '⚻', '⚼'];
+    const enochianChars = [
+      "⊕",
+      "⊗",
+      "⊙",
+      "☉",
+      "☊",
+      "☋",
+      "☌",
+      "☍",
+      "⚹",
+      "⚺",
+      "⚻",
+      "⚼",
+    ];
 
     ctx.strokeStyle = `hsla(${this.hueBase + 60}, 90%, 70%, ${0.8 + audioIntensity * 0.2})`;
     ctx.lineWidth = 4 + bassIntensity * 4;
@@ -4880,9 +5258,13 @@ export class FlowFieldRenderer {
       for (let col = -2; col < 2; col++) {
         const x = col * cellSize + cellSize / 2;
         const y = row * cellSize + cellSize / 2;
-        const charIndex = ((row + 2) * gridSize + (col + 2)) % enochianChars.length;
+        const charIndex =
+          ((row + 2) * gridSize + (col + 2)) % enochianChars.length;
         const rotation = Math.sin(this.time * 0.003 + row + col) * 0.2;
-        const scale = 1 + Math.sin(this.time * 0.005 + row * col) * 0.15 + midIntensity * 0.2;
+        const scale =
+          1 +
+          Math.sin(this.time * 0.005 + row * col) * 0.15 +
+          midIntensity * 0.2;
 
         ctx.save();
         ctx.translate(x, y);
@@ -4891,9 +5273,9 @@ export class FlowFieldRenderer {
 
         ctx.fillStyle = `hsla(${this.hueBase + charIndex * 15}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`;
         ctx.font = `${cellSize * 0.5}px serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(enochianChars[charIndex] ?? '', 0, 0);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(enochianChars[charIndex] ?? "", 0, 0);
         ctx.restore();
       }
     }
@@ -4910,7 +5292,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderLabyrinth(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderLabyrinth(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -4933,11 +5319,14 @@ export class FlowFieldRenderer {
 
         if (shouldDraw) {
           const hue = (this.hueBase + ring * 30 + seg * 5) % 360;
-          const alpha = 0.6 + Math.sin(this.time * 0.005 + seg) * 0.2 + trebleIntensity * 0.2;
+          const alpha =
+            0.6 +
+            Math.sin(this.time * 0.005 + seg) * 0.2 +
+            trebleIntensity * 0.2;
 
           ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${alpha})`;
           ctx.lineWidth = 2 + bassIntensity * 2;
-          ctx.lineCap = 'round';
+          ctx.lineCap = "round";
 
           ctx.beginPath();
           ctx.arc(0, 0, radius, angle, nextAngle);
@@ -4973,7 +5362,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderCosmicWeb(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderCosmicWeb(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -4991,7 +5384,10 @@ export class FlowFieldRenderer {
 
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        const distance = Math.hypot(nodes[i]!.x - nodes[j]!.x, nodes[i]!.y - nodes[j]!.y);
+        const distance = Math.hypot(
+          nodes[i]!.x - nodes[j]!.x,
+          nodes[i]!.y - nodes[j]!.y,
+        );
         const maxDistance = radius * 0.8;
 
         if (distance < maxDistance) {
@@ -5019,10 +5415,18 @@ export class FlowFieldRenderer {
     }
 
     nodes.forEach((node, i) => {
-      const nodeSize = 6 + Math.sin(this.time * 0.003 + i) * 3 + bassIntensity * 4;
+      const nodeSize =
+        6 + Math.sin(this.time * 0.003 + i) * 3 + bassIntensity * 4;
       const hue = (this.hueBase + i * 20) % 360;
 
-      const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, nodeSize * 2);
+      const gradient = ctx.createRadialGradient(
+        node.x,
+        node.y,
+        0,
+        node.x,
+        node.y,
+        nodeSize * 2,
+      );
       gradient.addColorStop(0, `hsla(${hue}, 90%, 75%, 1)`);
       gradient.addColorStop(0.5, `hsla(${hue}, 85%, 70%, 0.6)`);
       gradient.addColorStop(1, `hsla(${hue}, 80%, 65%, 0)`);
@@ -5036,7 +5440,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderVortexSpiral(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderVortexSpiral(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5052,7 +5460,8 @@ export class FlowFieldRenderer {
       ctx.beginPath();
       for (let i = 0; i <= 100; i++) {
         const progress = i / 100;
-        const angle = armOffset + progress * Math.PI * 2 * turns + this.time * 0.003;
+        const angle =
+          armOffset + progress * Math.PI * 2 * turns + this.time * 0.003;
         const radius = progress * maxRadius * (0.1 + progress * 0.9);
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
@@ -5063,12 +5472,15 @@ export class FlowFieldRenderer {
 
       const gradient = ctx.createLinearGradient(0, 0, maxRadius, 0);
       gradient.addColorStop(0, `hsla(${armHue}, 90%, 70%, 0.2)`);
-      gradient.addColorStop(0.5, `hsla(${armHue}, 85%, 65%, ${0.6 + midIntensity * 0.3})`);
+      gradient.addColorStop(
+        0.5,
+        `hsla(${armHue}, 85%, 65%, ${0.6 + midIntensity * 0.3})`,
+      );
       gradient.addColorStop(1, `hsla(${armHue}, 80%, 60%, 0.9)`);
 
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 3 + bassIntensity * 4;
-      ctx.lineCap = 'round';
+      ctx.lineCap = "round";
       ctx.stroke();
     }
 
@@ -5086,7 +5498,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderSacredSpiral(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderSacredSpiral(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5102,8 +5518,11 @@ export class FlowFieldRenderer {
       ctx.beginPath();
       for (let i = 0; i <= 200; i++) {
         const progress = i / 200;
-        const angle = offset + progress * Math.PI * 2 * turns + this.time * 0.002 * (spiralIndex % 2 === 0 ? 1 : -1);
-        const radius = maxRadius * Math.pow(phi, -2 + progress * 3) / phi;
+        const angle =
+          offset +
+          progress * Math.PI * 2 * turns +
+          this.time * 0.002 * (spiralIndex % 2 === 0 ? 1 : -1);
+        const radius = (maxRadius * Math.pow(phi, -2 + progress * 3)) / phi;
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
 
@@ -5113,24 +5532,28 @@ export class FlowFieldRenderer {
 
       ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${0.6 + trebleIntensity * 0.3})`;
       ctx.lineWidth = 2 + bassIntensity * 3;
-      ctx.lineCap = 'round';
+      ctx.lineCap = "round";
       ctx.stroke();
     }
 
     ctx.restore();
   }
 
-  private renderElementalCross(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderElementalCross(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
     const armLength = Math.min(this.width, this.height) * 0.35;
     const elements = [
-      { angle: 0, hue: 15, symbol: '△' },
-      { angle: Math.PI / 2, hue: 60, symbol: '△' },
-      { angle: Math.PI, hue: 200, symbol: '▽' },
-      { angle: (Math.PI * 3) / 2, hue: 120, symbol: '▽' },
+      { angle: 0, hue: 15, symbol: "△" },
+      { angle: Math.PI / 2, hue: 60, symbol: "△" },
+      { angle: Math.PI, hue: 200, symbol: "▽" },
+      { angle: (Math.PI * 3) / 2, hue: 120, symbol: "▽" },
     ];
 
     elements.forEach((element, index) => {
@@ -5138,12 +5561,15 @@ export class FlowFieldRenderer {
       ctx.rotate(element.angle);
 
       const gradient = ctx.createLinearGradient(0, 0, armLength, 0);
-      gradient.addColorStop(0, `hsla(${element.hue}, 90%, 70%, ${0.8 + audioIntensity * 0.2})`);
+      gradient.addColorStop(
+        0,
+        `hsla(${element.hue}, 90%, 70%, ${0.8 + audioIntensity * 0.2})`,
+      );
       gradient.addColorStop(1, `hsla(${element.hue}, 90%, 70%, 0)`);
 
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 8 + bassIntensity * 6;
-      ctx.lineCap = 'round';
+      ctx.lineCap = "round";
 
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -5151,13 +5577,14 @@ export class FlowFieldRenderer {
       ctx.stroke();
 
       ctx.translate(armLength * 0.85, 0);
-      const symbolScale = 1 + Math.sin(this.time * 0.005 + index) * 0.2 + midIntensity * 0.3;
+      const symbolScale =
+        1 + Math.sin(this.time * 0.005 + index) * 0.2 + midIntensity * 0.3;
       ctx.scale(symbolScale, symbolScale);
 
       ctx.fillStyle = `hsla(${element.hue}, 95%, 75%, ${0.9 + audioIntensity * 0.1})`;
       ctx.font = `${armLength * 0.15}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText(element.symbol, 0, 0);
 
       ctx.restore();
@@ -5166,7 +5593,10 @@ export class FlowFieldRenderer {
     const centerSize = 40 + bassIntensity * 20;
     const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerSize);
     centerGradient.addColorStop(0, `hsla(${this.hueBase}, 95%, 80%, 1)`);
-    centerGradient.addColorStop(0.7, `hsla(${this.hueBase + 60}, 90%, 70%, 0.7)`);
+    centerGradient.addColorStop(
+      0.7,
+      `hsla(${this.hueBase + 60}, 90%, 70%, 0.7)`,
+    );
     centerGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 85%, 60%, 0)`);
 
     ctx.fillStyle = centerGradient;
@@ -5177,7 +5607,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderDragonEye(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderDragonEye(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5237,12 +5671,33 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderAncientGlyphs(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderAncientGlyphs(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
-    const glyphs = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', '☥', '☦', '☧', '☨', '☩', '☪', '☫', '☬'];
+    const glyphs = [
+      "ᚠ",
+      "ᚢ",
+      "ᚦ",
+      "ᚨ",
+      "ᚱ",
+      "ᚲ",
+      "ᚷ",
+      "ᚹ",
+      "☥",
+      "☦",
+      "☧",
+      "☨",
+      "☩",
+      "☪",
+      "☫",
+      "☬",
+    ];
     const radius = Math.min(this.width, this.height) * 0.35;
     const glyphCount = 16;
 
@@ -5253,7 +5708,8 @@ export class FlowFieldRenderer {
 
       const glyphIndex = i % glyphs.length;
       const rotation = this.time * 0.003 * (i % 2 === 0 ? 1 : -1);
-      const scale = 1 + Math.sin(this.time * 0.005 + i) * 0.2 + trebleIntensity * 0.3;
+      const scale =
+        1 + Math.sin(this.time * 0.005 + i) * 0.2 + trebleIntensity * 0.3;
 
       ctx.save();
       ctx.translate(x, y);
@@ -5263,23 +5719,27 @@ export class FlowFieldRenderer {
       const hue = (this.hueBase + i * 20) % 360;
       ctx.fillStyle = `hsla(${hue}, 95%, 80%, ${0.9 + audioIntensity * 0.1})`;
       ctx.font = `${radius * 0.15}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(glyphs[glyphIndex] ?? '', 0, 0);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(glyphs[glyphIndex] ?? "", 0, 0);
 
       ctx.restore();
     }
 
     ctx.fillStyle = `hsla(${this.hueBase}, 100%, 85%, ${0.9 + audioIntensity * 0.1})`;
     ctx.font = `${radius * 0.2}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('☯', 0, 0);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("☯", 0, 0);
 
     ctx.restore();
   }
 
-  private renderTimeWheel(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderTimeWheel(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5290,7 +5750,8 @@ export class FlowFieldRenderer {
     for (let ring = 0; ring < rings; ring++) {
       const radius = outerRadius * ((ring + 1) / rings);
       const segments = 12 * (ring + 1);
-      const rotation = this.time * 0.001 * (ring % 2 === 0 ? 1 : -1) * (ring + 1);
+      const rotation =
+        this.time * 0.001 * (ring % 2 === 0 ? 1 : -1) * (ring + 1);
 
       ctx.save();
       ctx.rotate(rotation);
@@ -5300,7 +5761,10 @@ export class FlowFieldRenderer {
         const nextAngle = (Math.PI * 2 * (seg + 1)) / segments;
 
         const hue = (this.hueBase + seg * (360 / segments) + ring * 20) % 360;
-        const alpha = 0.4 + Math.sin(this.time * 0.005 + seg + ring) * 0.2 + midIntensity * 0.2;
+        const alpha =
+          0.4 +
+          Math.sin(this.time * 0.005 + seg + ring) * 0.2 +
+          midIntensity * 0.2;
 
         ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${alpha * 0.3})`;
         ctx.beginPath();
@@ -5330,8 +5794,8 @@ export class FlowFieldRenderer {
       const markerHue = (this.hueBase + i * 30) % 360;
       ctx.fillStyle = `hsla(${markerHue}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`;
       ctx.font = `${outerRadius * 0.08}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText((i + 1).toString(), 0, 0);
 
       ctx.restore();
@@ -5350,7 +5814,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderAstralProjection(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderAstralProjection(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5391,12 +5859,16 @@ export class FlowFieldRenderer {
     ctx.setLineDash([]);
 
     ctx.save();
-    ctx.globalAlpha = 0.7 + Math.sin(this.time * 0.004) * 0.2 + audioIntensity * 0.2;
+    ctx.globalAlpha =
+      0.7 + Math.sin(this.time * 0.004) * 0.2 + audioIntensity * 0.2;
 
     const astralGlow = bodySize * 2;
     const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, astralGlow);
     glowGradient.addColorStop(0, `hsla(${this.hueBase + 240}, 90%, 75%, 0.6)`);
-    glowGradient.addColorStop(0.5, `hsla(${this.hueBase + 200}, 85%, 70%, 0.3)`);
+    glowGradient.addColorStop(
+      0.5,
+      `hsla(${this.hueBase + 200}, 85%, 70%, 0.3)`,
+    );
     glowGradient.addColorStop(1, `hsla(${this.hueBase + 160}, 80%, 65%, 0)`);
 
     ctx.fillStyle = glowGradient;
@@ -5418,7 +5890,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderEthericField(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderEthericField(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5438,7 +5914,9 @@ export class FlowFieldRenderer {
         const progress = i / 100;
         const angle = progress * Math.PI * 2;
 
-        const wave = Math.sin(angle * waveCount + this.time * 0.003 * layer) * waveAmplitude;
+        const wave =
+          Math.sin(angle * waveCount + this.time * 0.003 * layer) *
+          waveAmplitude;
         const r = radius + wave + Math.sin(this.time * 0.002 + layer) * 5;
 
         const x = Math.cos(angle) * r;
@@ -5449,9 +5927,19 @@ export class FlowFieldRenderer {
       }
       ctx.closePath();
 
-      const gradient = ctx.createRadialGradient(0, 0, radius * 0.8, 0, 0, radius * 1.2);
+      const gradient = ctx.createRadialGradient(
+        0,
+        0,
+        radius * 0.8,
+        0,
+        0,
+        radius * 1.2,
+      );
       gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, 0)`);
-      gradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${0.15 + midIntensity * 0.1})`);
+      gradient.addColorStop(
+        0.5,
+        `hsla(${hue}, 85%, 65%, ${0.15 + midIntensity * 0.1})`,
+      );
       gradient.addColorStop(1, `hsla(${hue}, 90%, 70%, 0)`);
 
       ctx.fillStyle = gradient;
@@ -5476,7 +5964,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderPlatonic(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderPlatonic(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5500,7 +5992,8 @@ export class FlowFieldRenderer {
       ctx.translate(x, y);
       ctx.rotate(this.time * 0.002 * (index % 2 === 0 ? 1 : -1));
 
-      const size = 60 + Math.sin(this.time * 0.005 + index) * 10 + bassIntensity * 15;
+      const size =
+        60 + Math.sin(this.time * 0.005 + index) * 10 + bassIntensity * 15;
       const hue = (this.hueBase + solid.hue) % 360;
 
       ctx.strokeStyle = `hsla(${hue}, 85%, 65%, ${0.8 + midIntensity * 0.2})`;
@@ -5536,7 +6029,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderInfinityKnot(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderInfinityKnot(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5545,8 +6042,10 @@ export class FlowFieldRenderer {
     const lineWidth = 8 + bassIntensity * 6;
 
     const weave = (t: number, offset: number) => {
-      const x = size * Math.cos(t + offset) / (1 + Math.sin(t + offset) ** 2);
-      const y = size * Math.sin(t + offset) * Math.cos(t + offset) / (1 + Math.sin(t + offset) ** 2);
+      const x = (size * Math.cos(t + offset)) / (1 + Math.sin(t + offset) ** 2);
+      const y =
+        (size * Math.sin(t + offset) * Math.cos(t + offset)) /
+        (1 + Math.sin(t + offset) ** 2);
       return { x, y };
     };
 
@@ -5562,21 +6061,34 @@ export class FlowFieldRenderer {
       }
 
       const gradient = ctx.createLinearGradient(-size, 0, size, 0);
-      gradient.addColorStop(0, `hsla(${hue}, 90%, 70%, ${0.7 + trebleIntensity * 0.2})`);
-      gradient.addColorStop(0.5, `hsla(${hue + 30}, 95%, 75%, ${0.9 + audioIntensity * 0.1})`);
-      gradient.addColorStop(1, `hsla(${hue + 60}, 90%, 70%, ${0.7 + trebleIntensity * 0.2})`);
+      gradient.addColorStop(
+        0,
+        `hsla(${hue}, 90%, 70%, ${0.7 + trebleIntensity * 0.2})`,
+      );
+      gradient.addColorStop(
+        0.5,
+        `hsla(${hue + 30}, 95%, 75%, ${0.9 + audioIntensity * 0.1})`,
+      );
+      gradient.addColorStop(
+        1,
+        `hsla(${hue + 60}, 90%, 70%, ${0.7 + trebleIntensity * 0.2})`,
+      );
 
       ctx.strokeStyle = gradient;
       ctx.lineWidth = lineWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.stroke();
     }
 
     ctx.restore();
   }
 
-  private renderCosmicLotus(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderCosmicLotus(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5594,26 +6106,46 @@ export class FlowFieldRenderer {
 
       for (let petal = 0; petal < petalsInLayer; petal++) {
         const angle = (Math.PI * 2 * petal) / petalsInLayer;
-        const hue = (this.hueBase + layer * 30 + petal * (360 / petalsInLayer)) % 360;
+        const hue =
+          (this.hueBase + layer * 30 + petal * (360 / petalsInLayer)) % 360;
 
         ctx.save();
         ctx.rotate(angle);
 
         const petalWidth = layerRadius * 0.3;
         const petalLength = layerRadius * 0.6;
-        const petalScale = 1 + Math.sin(this.time * 0.005 + petal) * 0.1 + midIntensity * 0.15;
+        const petalScale =
+          1 + Math.sin(this.time * 0.005 + petal) * 0.1 + midIntensity * 0.15;
 
         ctx.scale(petalScale, petalScale);
 
-        const petalGradient = ctx.createRadialGradient(0, petalLength * 0.3, 0, 0, petalLength * 0.3, petalWidth);
-        petalGradient.addColorStop(0, `hsla(${hue}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`);
+        const petalGradient = ctx.createRadialGradient(
+          0,
+          petalLength * 0.3,
+          0,
+          0,
+          petalLength * 0.3,
+          petalWidth,
+        );
+        petalGradient.addColorStop(
+          0,
+          `hsla(${hue}, 90%, 75%, ${0.9 + audioIntensity * 0.1})`,
+        );
         petalGradient.addColorStop(0.6, `hsla(${hue}, 85%, 65%, 0.8)`);
         petalGradient.addColorStop(1, `hsla(${hue}, 80%, 55%, 0.3)`);
 
         ctx.fillStyle = petalGradient;
 
         ctx.beginPath();
-        ctx.ellipse(0, petalLength * 0.5, petalWidth * 0.4, petalLength * 0.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(
+          0,
+          petalLength * 0.5,
+          petalWidth * 0.4,
+          petalLength * 0.5,
+          0,
+          0,
+          Math.PI * 2,
+        );
         ctx.fill();
 
         ctx.strokeStyle = `hsla(${hue}, 90%, 80%, ${0.6 + bassIntensity * 0.3})`;
@@ -5641,7 +6173,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderVoidMandala(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderVoidMandala(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5662,8 +6198,12 @@ export class FlowFieldRenderer {
         const nextAngle = (Math.PI * 2 * (seg + 1)) / segments;
 
         const hue = (this.hueBase + 240 + ring * 10 + seg * 5) % 360;
-        const lightness = 20 + ring * 5 + Math.sin(this.time * 0.005 + seg) * 10;
-        const alpha = 0.5 + Math.sin(this.time * 0.003 + ring + seg) * 0.2 + midIntensity * 0.2;
+        const lightness =
+          20 + ring * 5 + Math.sin(this.time * 0.005 + seg) * 10;
+        const alpha =
+          0.5 +
+          Math.sin(this.time * 0.003 + ring + seg) * 0.2 +
+          midIntensity * 0.2;
 
         ctx.strokeStyle = `hsla(${hue}, 70%, ${lightness}%, ${alpha})`;
         ctx.lineWidth = 2 + (ring === rings - 1 ? bassIntensity * 3 : 0);
@@ -5677,7 +6217,10 @@ export class FlowFieldRenderer {
           const innerRadius = ring > 0 ? (maxRadius / rings) * ring : 0;
 
           ctx.beginPath();
-          ctx.moveTo(Math.cos(midAngle) * innerRadius, Math.sin(midAngle) * innerRadius);
+          ctx.moveTo(
+            Math.cos(midAngle) * innerRadius,
+            Math.sin(midAngle) * innerRadius,
+          );
           ctx.lineTo(Math.cos(midAngle) * radius, Math.sin(midAngle) * radius);
           ctx.stroke();
 
@@ -5719,7 +6262,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderStellarMap(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderStellarMap(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5750,7 +6297,10 @@ export class FlowFieldRenderer {
 
     for (let i = 0; i < stars.length; i++) {
       for (let j = i + 1; j < stars.length; j++) {
-        const distance = Math.hypot(stars[i]!.x - stars[j]!.x, stars[i]!.y - stars[j]!.y);
+        const distance = Math.hypot(
+          stars[i]!.x - stars[j]!.x,
+          stars[i]!.y - stars[j]!.y,
+        );
 
         if (distance < maxRadius * 0.25) {
           ctx.beginPath();
@@ -5763,13 +6313,27 @@ export class FlowFieldRenderer {
     ctx.setLineDash([]);
 
     stars.forEach((star, index) => {
-      const twinkle = Math.sin(this.time * 0.005 + index) * 0.3 + 0.7 + audioIntensity * 0.2;
+      const twinkle =
+        Math.sin(this.time * 0.005 + index) * 0.3 + 0.7 + audioIntensity * 0.2;
       const dynamicSize = star.size + bassIntensity * 3;
 
       const glowSize = dynamicSize * 3;
-      const glowGradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, glowSize);
-      glowGradient.addColorStop(0, `hsla(${star.hue}, 90%, 80%, ${twinkle * 0.8})`);
-      glowGradient.addColorStop(0.5, `hsla(${star.hue}, 85%, 70%, ${twinkle * 0.4})`);
+      const glowGradient = ctx.createRadialGradient(
+        star.x,
+        star.y,
+        0,
+        star.x,
+        star.y,
+        glowSize,
+      );
+      glowGradient.addColorStop(
+        0,
+        `hsla(${star.hue}, 90%, 80%, ${twinkle * 0.8})`,
+      );
+      glowGradient.addColorStop(
+        0.5,
+        `hsla(${star.hue}, 85%, 70%, ${twinkle * 0.4})`,
+      );
       glowGradient.addColorStop(1, `hsla(${star.hue}, 80%, 60%, 0)`);
 
       ctx.fillStyle = glowGradient;
@@ -5786,7 +6350,10 @@ export class FlowFieldRenderer {
     const centerSize = 25 + bassIntensity * 15;
     const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, centerSize);
     centerGradient.addColorStop(0, `hsla(${this.hueBase + 40}, 100%, 85%, 1)`);
-    centerGradient.addColorStop(0.5, `hsla(${this.hueBase + 20}, 95%, 75%, 0.9)`);
+    centerGradient.addColorStop(
+      0.5,
+      `hsla(${this.hueBase + 20}, 95%, 75%, 0.9)`,
+    );
     centerGradient.addColorStop(1, `hsla(${this.hueBase}, 90%, 65%, 0)`);
 
     ctx.fillStyle = centerGradient;
@@ -5797,7 +6364,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderWyrdWeb(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderWyrdWeb(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5813,12 +6384,15 @@ export class FlowFieldRenderer {
       ctx.rotate(angle);
 
       const gradient = ctx.createLinearGradient(0, 0, 0, maxRadius);
-      gradient.addColorStop(0, `hsla(${hue}, 80%, 60%, ${0.8 + audioIntensity * 0.2})`);
+      gradient.addColorStop(
+        0,
+        `hsla(${hue}, 80%, 60%, ${0.8 + audioIntensity * 0.2})`,
+      );
       gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0.3)`);
 
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 4 + bassIntensity * 4;
-      ctx.lineCap = 'round';
+      ctx.lineCap = "round";
 
       ctx.beginPath();
       for (let i = 0; i <= 50; i++) {
@@ -5845,7 +6419,8 @@ export class FlowFieldRenderer {
       ctx.beginPath();
       for (let seg = 0; seg <= segments; seg++) {
         const angle = (Math.PI * 2 * seg) / segments;
-        const waveRadius = radius + Math.sin(angle * 3 + this.time * 0.002) * 10;
+        const waveRadius =
+          radius + Math.sin(angle * 3 + this.time * 0.002) * 10;
         const x = Math.cos(angle) * waveRadius;
         const y = Math.sin(angle) * waveRadius;
 
@@ -5870,7 +6445,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderSpiritualGateway(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderSpiritualGateway(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5884,13 +6463,29 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(-archRadius - pillarWidth / 2, pillarHeight / 2);
 
-    const leftPillarGradient = ctx.createLinearGradient(-pillarWidth / 2, 0, pillarWidth / 2, 0);
+    const leftPillarGradient = ctx.createLinearGradient(
+      -pillarWidth / 2,
+      0,
+      pillarWidth / 2,
+      0,
+    );
     leftPillarGradient.addColorStop(0, `hsla(${this.hueBase}, 70%, 50%, 0.3)`);
-    leftPillarGradient.addColorStop(0.5, `hsla(${this.hueBase + 20}, 80%, 60%, ${0.7 + bassIntensity * 0.2})`);
-    leftPillarGradient.addColorStop(1, `hsla(${this.hueBase + 40}, 70%, 50%, 0.3)`);
+    leftPillarGradient.addColorStop(
+      0.5,
+      `hsla(${this.hueBase + 20}, 80%, 60%, ${0.7 + bassIntensity * 0.2})`,
+    );
+    leftPillarGradient.addColorStop(
+      1,
+      `hsla(${this.hueBase + 40}, 70%, 50%, 0.3)`,
+    );
 
     ctx.fillStyle = leftPillarGradient;
-    ctx.fillRect(-pillarWidth / 2, -pillarHeight / 2, pillarWidth, pillarHeight);
+    ctx.fillRect(
+      -pillarWidth / 2,
+      -pillarHeight / 2,
+      pillarWidth,
+      pillarHeight,
+    );
 
     ctx.restore();
 
@@ -5898,7 +6493,12 @@ export class FlowFieldRenderer {
     ctx.translate(archRadius + pillarWidth / 2, pillarHeight / 2);
 
     ctx.fillStyle = leftPillarGradient;
-    ctx.fillRect(-pillarWidth / 2, -pillarHeight / 2, pillarWidth, pillarHeight);
+    ctx.fillRect(
+      -pillarWidth / 2,
+      -pillarHeight / 2,
+      pillarWidth,
+      pillarHeight,
+    );
 
     ctx.restore();
 
@@ -5907,7 +6507,7 @@ export class FlowFieldRenderer {
 
     ctx.strokeStyle = `hsla(${this.hueBase + 30}, 85%, 65%, ${0.8 + audioIntensity * 0.2})`;
     ctx.lineWidth = pillarWidth * 0.8;
-    ctx.lineCap = 'round';
+    ctx.lineCap = "round";
 
     ctx.beginPath();
     ctx.arc(0, 0, archRadius, Math.PI, Math.PI * 2);
@@ -5920,8 +6520,10 @@ export class FlowFieldRenderer {
 
     const portalLayers = 8;
     for (let layer = 0; layer < portalLayers; layer++) {
-      const layerRadius = (portalRadius / portalLayers) * (portalLayers - layer);
-      const rotation = this.time * 0.002 * (layer % 2 === 0 ? 1 : -1) * (layer + 1);
+      const layerRadius =
+        (portalRadius / portalLayers) * (portalLayers - layer);
+      const rotation =
+        this.time * 0.002 * (layer % 2 === 0 ? 1 : -1) * (layer + 1);
 
       ctx.save();
       ctx.translate(0, portalCenterY);
@@ -5930,7 +6532,14 @@ export class FlowFieldRenderer {
       const hue = (this.hueBase + 120 + layer * 30) % 360;
       const alpha = 0.15 + (layer / portalLayers) * 0.3 + midIntensity * 0.2;
 
-      const layerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, layerRadius);
+      const layerGradient = ctx.createRadialGradient(
+        0,
+        0,
+        0,
+        0,
+        0,
+        layerRadius,
+      );
       layerGradient.addColorStop(0, `hsla(${hue}, 90%, 70%, 0)`);
       layerGradient.addColorStop(0.5, `hsla(${hue}, 85%, 65%, ${alpha})`);
       layerGradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
@@ -5944,10 +6553,26 @@ export class FlowFieldRenderer {
     }
 
     const centerLight = 30 + bassIntensity * 25;
-    const centerGradient = ctx.createRadialGradient(0, portalCenterY, 0, 0, portalCenterY, centerLight);
-    centerGradient.addColorStop(0, `hsla(${this.hueBase + 180}, 100%, 95%, ${0.9 + audioIntensity * 0.1})`);
-    centerGradient.addColorStop(0.4, `hsla(${this.hueBase + 160}, 95%, 85%, 0.7)`);
-    centerGradient.addColorStop(0.7, `hsla(${this.hueBase + 140}, 90%, 75%, 0.4)`);
+    const centerGradient = ctx.createRadialGradient(
+      0,
+      portalCenterY,
+      0,
+      0,
+      portalCenterY,
+      centerLight,
+    );
+    centerGradient.addColorStop(
+      0,
+      `hsla(${this.hueBase + 180}, 100%, 95%, ${0.9 + audioIntensity * 0.1})`,
+    );
+    centerGradient.addColorStop(
+      0.4,
+      `hsla(${this.hueBase + 160}, 95%, 85%, 0.7)`,
+    );
+    centerGradient.addColorStop(
+      0.7,
+      `hsla(${this.hueBase + 140}, 90%, 75%, 0.4)`,
+    );
     centerGradient.addColorStop(1, `hsla(${this.hueBase + 120}, 85%, 65%, 0)`);
 
     ctx.fillStyle = centerGradient;
@@ -5958,7 +6583,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderAkashicRecords(audioIntensity: number, bassIntensity: number, trebleIntensity: number): void {
+  private renderAkashicRecords(
+    audioIntensity: number,
+    bassIntensity: number,
+    trebleIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
@@ -5966,7 +6595,12 @@ export class FlowFieldRenderer {
     const bookWidth = Math.min(this.width, this.height) * 0.5;
     const bookHeight = bookWidth * 1.3;
 
-    const coverGradient = ctx.createLinearGradient(-bookWidth / 2, 0, bookWidth / 2, 0);
+    const coverGradient = ctx.createLinearGradient(
+      -bookWidth / 2,
+      0,
+      bookWidth / 2,
+      0,
+    );
     coverGradient.addColorStop(0, `hsla(${this.hueBase}, 60%, 30%, 0.9)`);
     coverGradient.addColorStop(0.5, `hsla(${this.hueBase + 30}, 70%, 40%, 1)`);
     coverGradient.addColorStop(1, `hsla(${this.hueBase + 60}, 60%, 30%, 0.9)`);
@@ -5976,7 +6610,12 @@ export class FlowFieldRenderer {
 
     ctx.strokeStyle = `hsla(${this.hueBase + 40}, 80%, 60%, ${0.8 + audioIntensity * 0.2})`;
     ctx.lineWidth = 4 + bassIntensity * 3;
-    ctx.strokeRect(-bookWidth / 2 + 10, -bookHeight / 2 + 10, bookWidth - 20, bookHeight - 20);
+    ctx.strokeRect(
+      -bookWidth / 2 + 10,
+      -bookHeight / 2 + 10,
+      bookWidth - 20,
+      bookHeight - 20,
+    );
 
     const circleRadius = bookHeight * 0.05;
     ctx.strokeStyle = `hsla(${this.hueBase + 60}, 90%, 70%, ${0.6 + trebleIntensity * 0.3})`;
@@ -5998,9 +6637,9 @@ export class FlowFieldRenderer {
 
     ctx.fillStyle = `hsla(${this.hueBase + 180}, 95%, 80%, ${0.9 + audioIntensity * 0.1})`;
     ctx.font = `${bookHeight * 0.08}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('∞ AKASHA ∞', 0, -bookHeight * 0.35);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("∞ AKASHA ∞", 0, -bookHeight * 0.35);
 
     const textLines = 8;
     const textStartY = -bookHeight * 0.15;
@@ -6008,15 +6647,17 @@ export class FlowFieldRenderer {
 
     for (let line = 0; line < textLines; line++) {
       const y = textStartY + line * lineHeight;
-      const lineAlpha = 0.4 + Math.sin(this.time * 0.003 + line) * 0.2 + trebleIntensity * 0.2;
+      const lineAlpha =
+        0.4 + Math.sin(this.time * 0.003 + line) * 0.2 + trebleIntensity * 0.2;
 
       ctx.fillStyle = `hsla(${this.hueBase + 180}, 90%, 75%, ${lineAlpha})`;
       ctx.font = `${bookHeight * 0.04}px monospace`;
 
-      const symbols = '⚹⚺⚻⚼☉☊☋☌☍⊕⊗⊙';
-      let textLine = '';
+      const symbols = "⚹⚺⚻⚼☉☊☋☌☍⊕⊗⊙";
+      let textLine = "";
       for (let i = 0; i < 15; i++) {
-        textLine += symbols[Math.floor((this.time * 0.001 + line + i) % symbols.length)];
+        textLine +=
+          symbols[Math.floor((this.time * 0.001 + line + i) % symbols.length)];
       }
 
       ctx.fillText(textLine, 0, y);
@@ -6025,7 +6666,11 @@ export class FlowFieldRenderer {
     ctx.restore();
   }
 
-  private renderSacredGeometry(audioIntensity: number, bassIntensity: number, midIntensity: number): void {
+  private renderSacredGeometry(
+    audioIntensity: number,
+    bassIntensity: number,
+    midIntensity: number,
+  ): void {
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(this.centerX, this.centerY);

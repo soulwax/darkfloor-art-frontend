@@ -104,12 +104,8 @@
     "@next/bundle-analyzer": "^16.0.1",
     "@svgr/cli": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.16",
-<<<<<<< HEAD
-    "@types/node": "^20.19.25",
-=======
     "@types/morgan": "^1.9.10",
     "@types/node": "^20.19.23",
->>>>>>> 80845a12678c9a81bcc15e04f2e9f22270764176
     "@types/pg": "^8.15.5",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
@@ -187,11 +183,6 @@
   },
   "ct3aMetadata": {
     "initVersion": "7.39.3"
-<<<<<<< HEAD
-  }
-}
-=======
   },
   "packageManager": "npm@11.6.2"
 }
->>>>>>> 80845a12678c9a81bcc15e04f2e9f22270764176
