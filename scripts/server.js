@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 // ============================================
 // ENVIRONMENT LOADING
 // ============================================
-// Load only .env file
+// Load .env first (base config)
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // ============================================
@@ -29,12 +29,17 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const nodeEnv = process.env.NODE_ENV || 'production';
 const isDev = nodeEnv === 'development';
 
-// PORT is required from .env
-if (!process.env.PORT) {
-  console.error('Error: PORT environment variable is required. Please set it in .env file.');
+// In development mode, load .env.development (overrides .env)
+if (isDev) {
+  dotenv.config({ path: path.resolve(__dirname, '../.env.development') });
+}
+
+// PORT is required - use PORT from env (set by PM2 or loaded from .env/.env.development)
+const port = process.env.PORT;
+if (!port) {
+  console.error('Error: PORT environment variable is required. Please set it in .env file (production) or .env.development file (development) or via PM2.');
   process.exit(1);
 }
-const port = process.env.PORT;
 // In dev mode, bind to all interfaces (0.0.0.0) to allow network access
 // In production, use localhost or HOSTNAME from env
 const hostname = process.env.HOSTNAME || (isDev ? '0.0.0.0' : 'localhost');

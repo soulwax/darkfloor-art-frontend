@@ -6,8 +6,19 @@
 const dotenv = require("dotenv");
 const path = require("path");
 
-// Load only .env file
+// Load .env for production
 dotenv.config({ path: path.resolve(__dirname, ".env") });
+const PORT = process.env.PORT || "3222";
+
+// Load .env.development for dev server configuration
+// Parse it separately without modifying process.env
+const fs = require("fs");
+const devEnvPath = path.resolve(__dirname, ".env.development");
+let DEV_PORT = "3412";
+if (fs.existsSync(devEnvPath)) {
+  const devEnvResult = dotenv.parse(fs.readFileSync(devEnvPath, "utf8"));
+  DEV_PORT = devEnvResult.PORT || "3412";
+}
 
 module.exports = {
   apps: [
@@ -50,11 +61,11 @@ module.exports = {
       // ============================================
       env: {
         NODE_ENV: "production",
-        PORT: process.env.PORT,
+        PORT: PORT,
       },
       env_production: {
         NODE_ENV: "production",
-        PORT: process.env.PORT,
+        PORT: PORT,
       },
 
       // ============================================
@@ -101,7 +112,7 @@ module.exports = {
       // Health check configuration - PM2 will check if the app is actually responding
       health_check_grace_period: 5000, // Grace period after startup before health checks start
       health_check_fatal_exceptions: true, // Treat health check failures as fatal (restart the app)
-      health_check_url: `http://localhost:${process.env.PORT}/api/health`, // Health check endpoint - uses PORT from .env
+      health_check_url: `http://localhost:${PORT}/api/health`, // Health check endpoint - uses PORT from .env
     },
     {
       // ============================================
@@ -140,11 +151,11 @@ module.exports = {
       // ============================================
       env: {
         NODE_ENV: "development",
-        PORT: process.env.DEV_PORT,
+        PORT: DEV_PORT,
       },
       env_development: {
         NODE_ENV: "development",
-        PORT: process.env.DEV_PORT,
+        PORT: DEV_PORT,
       },
 
       // ============================================
@@ -181,7 +192,7 @@ module.exports = {
       // ============================================
       health_check_grace_period: 5000,
       health_check_fatal_exceptions: true,
-      health_check_url: `http://localhost:${process.env.DEV_PORT}/api/health`, // Health check endpoint - uses DEV_PORT from .env
+      health_check_url: `http://localhost:${DEV_PORT}/api/health`, // Health check endpoint - uses DEV_PORT from .env
     },
   ],
 
