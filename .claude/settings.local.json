@@ -26,7 +26,8 @@
       "Bash(lsof:*)",
       "Bash(xargs:*)",
       "Bash(git restore:*)",
-      "Bash(1)"
+      "Bash(1)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
