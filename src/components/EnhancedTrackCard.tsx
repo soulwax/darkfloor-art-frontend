@@ -131,7 +131,7 @@ export default function EnhancedTrackCard({
   const coverImage = getCoverImage(track);
 
   return (
-    <div className="card group relative flex items-center gap-4 overflow-visible p-4 transition-all duration-200 hover:scale-[1.015] hover:shadow-lg md:gap-5 md:p-5">
+    <div className="card group relative flex items-center gap-4 !overflow-visible p-4 transition-all duration-200 hover:scale-[1.015] hover:shadow-lg md:gap-5 md:p-5">
       <div className="relative flex-shrink-0">
         <Image
           src={coverImage}

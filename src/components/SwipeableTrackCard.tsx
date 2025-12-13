@@ -194,7 +194,7 @@ export default function SwipeableTrackCard({
   return (
     <motion.div
       ref={constraintsRef}
-      className="relative overflow-visible rounded-xl"
+      className="relative !overflow-visible rounded-xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...springPresets.smooth, delay: index * 0.03 }}

@@ -118,7 +118,7 @@ export default function TrackCard({
       whileHover={{ scale: 1.01, y: -2 }}
       whileTap={{ scale: 0.98 }}
       transition={springPresets.snappy}
-      className="card group relative flex cursor-pointer items-center gap-3 overflow-visible p-3 md:gap-4 md:p-4"
+      className="card group relative flex cursor-pointer items-center gap-3 !overflow-visible p-3 md:gap-4 md:p-4"
     >
       <div className="relative flex-shrink-0">
         <Image
