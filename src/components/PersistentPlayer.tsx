@@ -4,7 +4,6 @@
 
 import { STORAGE_KEYS } from "@/config/storage";
 import { useGlobalPlayer } from "@/contexts/AudioPlayerContext";
-import { useMobilePanes } from "@/contexts/MobilePanesContext";
 import { useEqualizer } from "@/hooks/useEqualizer";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/trpc/react";
@@ -33,7 +32,6 @@ const EnhancedQueue = dynamic(
 export default function PersistentPlayer() {
   const player = useGlobalPlayer();
   const isMobile = useIsMobile();
-  const { navigateToPane } = useMobilePanes();
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -178,10 +176,7 @@ export default function PersistentPlayer() {
     onPlaybackRateChange: player.setPlaybackRate,
     onSkipForward: player.skipForward,
     onSkipBackward: player.skipBackward,
-    onToggleQueue:
-      isMobile && navigateToPane
-        ? () => navigateToPane(1) // Navigate to queue pane on mobile
-        : () => setShowQueue(!showQueue),
+    onToggleQueue: () => setShowQueue(!showQueue),
     onToggleEqualizer: () => setShowEqualizer(!showEqualizer),
     onToggleVisualizer: !isMobile ? handleVisualizerToggle : undefined,
     visualizerEnabled,
