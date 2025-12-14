@@ -60,32 +60,6 @@ export default function FloatingActionButton() {
       },
     },
     {
-      id: "queue",
-      label: "Queue",
-      icon: <ListMusic className="h-5 w-5" />,
-      color: "text-[var(--color-accent-strong)]",
-      bgColor: "bg-[rgba(88,198,177,0.2)]",
-      action: () => {
-        hapticLight();
-        navigateToPane(1);
-        setIsOpen(false);
-      },
-    },
-    {
-      id: "now-playing",
-      label: "Playing",
-      icon: <Music2 className="h-5 w-5" />,
-      color: "text-[var(--color-accent)]",
-      bgColor: "bg-[rgba(244,178,102,0.2)]",
-      action: () => {
-        hapticLight();
-        if (player.currentTrack) {
-          navigateToPane(0);
-        }
-        setIsOpen(false);
-      },
-    },
-    {
       id: "shuffle",
       label: "Shuffle",
       icon: <Shuffle className="h-5 w-5" />,
@@ -99,11 +73,8 @@ export default function FloatingActionButton() {
     },
   ];
 
-  // Filter actions based on state
-  const visibleActions = quickActions.filter((action) => {
-    if (action.id === "now-playing" && !player.currentTrack) return false;
-    return true;
-  });
+  // All actions are always visible
+  const visibleActions = quickActions;
 
   const handleToggle = () => {
     hapticMedium();
