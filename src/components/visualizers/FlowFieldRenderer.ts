@@ -207,6 +207,45 @@ export class FlowFieldRenderer {
   private auroraIntensity = 1.0;
   private mandalaLayers = 5;
 
+  // Extended pattern-specific parameters
+  private tarotCardSize = 1.0;
+  private tarotCardCount = 8;
+  private sacredSpiralCount = 3;
+  private sacredSpiralTightness = 1.0;
+  private pentagramSize = 1.0;
+  private pentagramRotationSpeed = 1.0;
+  private runeSize = 1.0;
+  private runeCount = 8;
+  private sigilCount = 6;
+  private sigilSize = 1.0;
+  private chakraSize = 1.0;
+  private chakraSpacing = 1.0;
+  private portalSize = 1.0;
+  private portalRingCount = 5;
+  private phoenixWingSpan = 1.0;
+  private crystalGridSize = 1.0;
+  private crystalCount = 12;
+  private moonPhaseCount = 8;
+  private moonPhaseSize = 1.0;
+  private flowerOfLifeCircleCount = 7;
+  private flowerOfLifeSize = 1.0;
+  private metatronNodeCount = 13;
+  private metatronSize = 1.0;
+  private torusRingCount = 12;
+  private torusThickness = 1.0;
+  private labyrinthComplexity = 1.0;
+  private labyrinthPathWidth = 1.0;
+  private vortexSpiralCount = 4;
+  private vortexRotationSpeed = 1.0;
+  private dragonEyeSize = 1.0;
+  private dragonPupilSize = 1.0;
+  private ancientGlyphCount = 16;
+  private ancientGlyphSize = 1.0;
+  private platonicSize = 1.0;
+  private platonicRotationSpeed = 1.0;
+  private cosmicLotusLayerCount = 5;
+  private cosmicLotusPetalCount = 8;
+
   private lightningBolts: {
     segments: { x: number; y: number }[];
     life: number;
@@ -7177,5 +7216,302 @@ export class FlowFieldRenderer {
 
   public setMandalaLayers(value: number): void {
     this.mandalaLayers = Math.max(1, Math.min(12, value));
+  }
+
+  // Extended pattern-specific getters and setters
+  public getTarotCardSize(): number {
+    return this.tarotCardSize;
+  }
+
+  public setTarotCardSize(value: number): void {
+    this.tarotCardSize = Math.max(0.5, Math.min(3.0, value));
+  }
+
+  public getTarotCardCount(): number {
+    return this.tarotCardCount;
+  }
+
+  public setTarotCardCount(value: number): void {
+    this.tarotCardCount = Math.max(3, Math.min(22, value));
+  }
+
+  public getSacredSpiralCount(): number {
+    return this.sacredSpiralCount;
+  }
+
+  public setSacredSpiralCount(value: number): void {
+    this.sacredSpiralCount = Math.max(1, Math.min(8, value));
+  }
+
+  public getSacredSpiralTightness(): number {
+    return this.sacredSpiralTightness;
+  }
+
+  public setSacredSpiralTightness(value: number): void {
+    this.sacredSpiralTightness = Math.max(0.1, Math.min(3.0, value));
+  }
+
+  public getPentagramSize(): number {
+    return this.pentagramSize;
+  }
+
+  public setPentagramSize(value: number): void {
+    this.pentagramSize = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getPentagramRotationSpeed(): number {
+    return this.pentagramRotationSpeed;
+  }
+
+  public setPentagramRotationSpeed(value: number): void {
+    this.pentagramRotationSpeed = Math.max(0.1, Math.min(3.0, value));
+  }
+
+  public getRuneSize(): number {
+    return this.runeSize;
+  }
+
+  public setRuneSize(value: number): void {
+    this.runeSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getRuneCount(): number {
+    return this.runeCount;
+  }
+
+  public setRuneCount(value: number): void {
+    this.runeCount = Math.max(4, Math.min(16, value));
+  }
+
+  public getSigilCount(): number {
+    return this.sigilCount;
+  }
+
+  public setSigilCount(value: number): void {
+    this.sigilCount = Math.max(3, Math.min(12, value));
+  }
+
+  public getSigilSize(): number {
+    return this.sigilSize;
+  }
+
+  public setSigilSize(value: number): void {
+    this.sigilSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getChakraSize(): number {
+    return this.chakraSize;
+  }
+
+  public setChakraSize(value: number): void {
+    this.chakraSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getChakraSpacing(): number {
+    return this.chakraSpacing;
+  }
+
+  public setChakraSpacing(value: number): void {
+    this.chakraSpacing = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getPortalSize(): number {
+    return this.portalSize;
+  }
+
+  public setPortalSize(value: number): void {
+    this.portalSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getPortalRingCount(): number {
+    return this.portalRingCount;
+  }
+
+  public setPortalRingCount(value: number): void {
+    this.portalRingCount = Math.max(3, Math.min(12, value));
+  }
+
+  public getPhoenixWingSpan(): number {
+    return this.phoenixWingSpan;
+  }
+
+  public setPhoenixWingSpan(value: number): void {
+    this.phoenixWingSpan = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getCrystalGridSize(): number {
+    return this.crystalGridSize;
+  }
+
+  public setCrystalGridSize(value: number): void {
+    this.crystalGridSize = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getCrystalCount(): number {
+    return this.crystalCount;
+  }
+
+  public setCrystalCount(value: number): void {
+    this.crystalCount = Math.max(6, Math.min(24, value));
+  }
+
+  public getMoonPhaseCount(): number {
+    return this.moonPhaseCount;
+  }
+
+  public setMoonPhaseCount(value: number): void {
+    this.moonPhaseCount = Math.max(4, Math.min(13, value));
+  }
+
+  public getMoonPhaseSize(): number {
+    return this.moonPhaseSize;
+  }
+
+  public setMoonPhaseSize(value: number): void {
+    this.moonPhaseSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getFlowerOfLifeCircleCount(): number {
+    return this.flowerOfLifeCircleCount;
+  }
+
+  public setFlowerOfLifeCircleCount(value: number): void {
+    this.flowerOfLifeCircleCount = Math.max(1, Math.min(19, value));
+  }
+
+  public getFlowerOfLifeSize(): number {
+    return this.flowerOfLifeSize;
+  }
+
+  public setFlowerOfLifeSize(value: number): void {
+    this.flowerOfLifeSize = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getMetatronNodeCount(): number {
+    return this.metatronNodeCount;
+  }
+
+  public setMetatronNodeCount(value: number): void {
+    this.metatronNodeCount = Math.max(7, Math.min(19, value));
+  }
+
+  public getMetatronSize(): number {
+    return this.metatronSize;
+  }
+
+  public setMetatronSize(value: number): void {
+    this.metatronSize = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getTorusRingCount(): number {
+    return this.torusRingCount;
+  }
+
+  public setTorusRingCount(value: number): void {
+    this.torusRingCount = Math.max(6, Math.min(24, value));
+  }
+
+  public getTorusThickness(): number {
+    return this.torusThickness;
+  }
+
+  public setTorusThickness(value: number): void {
+    this.torusThickness = Math.max(0.3, Math.min(2.0, value));
+  }
+
+  public getLabyrinthComplexity(): number {
+    return this.labyrinthComplexity;
+  }
+
+  public setLabyrinthComplexity(value: number): void {
+    this.labyrinthComplexity = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getLabyrinthPathWidth(): number {
+    return this.labyrinthPathWidth;
+  }
+
+  public setLabyrinthPathWidth(value: number): void {
+    this.labyrinthPathWidth = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getVortexSpiralCount(): number {
+    return this.vortexSpiralCount;
+  }
+
+  public setVortexSpiralCount(value: number): void {
+    this.vortexSpiralCount = Math.max(2, Math.min(12, value));
+  }
+
+  public getVortexRotationSpeed(): number {
+    return this.vortexRotationSpeed;
+  }
+
+  public setVortexRotationSpeed(value: number): void {
+    this.vortexRotationSpeed = Math.max(0.1, Math.min(3.0, value));
+  }
+
+  public getDragonEyeSize(): number {
+    return this.dragonEyeSize;
+  }
+
+  public setDragonEyeSize(value: number): void {
+    this.dragonEyeSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getDragonPupilSize(): number {
+    return this.dragonPupilSize;
+  }
+
+  public setDragonPupilSize(value: number): void {
+    this.dragonPupilSize = Math.max(0.3, Math.min(1.5, value));
+  }
+
+  public getAncientGlyphCount(): number {
+    return this.ancientGlyphCount;
+  }
+
+  public setAncientGlyphCount(value: number): void {
+    this.ancientGlyphCount = Math.max(8, Math.min(32, value));
+  }
+
+  public getAncientGlyphSize(): number {
+    return this.ancientGlyphSize;
+  }
+
+  public setAncientGlyphSize(value: number): void {
+    this.ancientGlyphSize = Math.max(0.5, Math.min(2.5, value));
+  }
+
+  public getPlatonicSize(): number {
+    return this.platonicSize;
+  }
+
+  public setPlatonicSize(value: number): void {
+    this.platonicSize = Math.max(0.5, Math.min(2.0, value));
+  }
+
+  public getPlatonicRotationSpeed(): number {
+    return this.platonicRotationSpeed;
+  }
+
+  public setPlatonicRotationSpeed(value: number): void {
+    this.platonicRotationSpeed = Math.max(0.1, Math.min(3.0, value));
+  }
+
+  public getCosmicLotusLayerCount(): number {
+    return this.cosmicLotusLayerCount;
+  }
+
+  public setCosmicLotusLayerCount(value: number): void {
+    this.cosmicLotusLayerCount = Math.max(2, Math.min(12, value));
+  }
+
+  public getCosmicLotusPetalCount(): number {
+    return this.cosmicLotusPetalCount;
+  }
+
+  public setCosmicLotusPetalCount(value: number): void {
+    this.cosmicLotusPetalCount = Math.max(4, Math.min(16, value));
   }
 }

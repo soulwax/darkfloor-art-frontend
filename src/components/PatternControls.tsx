@@ -95,6 +95,43 @@ export default function PatternControls({
     galaxyArmCount: number;
     auroraIntensity: number;
     mandalaLayers: number;
+    tarotCardSize: number;
+    tarotCardCount: number;
+    sacredSpiralCount: number;
+    sacredSpiralTightness: number;
+    pentagramSize: number;
+    pentagramRotationSpeed: number;
+    runeSize: number;
+    runeCount: number;
+    sigilCount: number;
+    sigilSize: number;
+    chakraSize: number;
+    chakraSpacing: number;
+    portalSize: number;
+    portalRingCount: number;
+    phoenixWingSpan: number;
+    crystalGridSize: number;
+    crystalCount: number;
+    moonPhaseCount: number;
+    moonPhaseSize: number;
+    flowerOfLifeCircleCount: number;
+    flowerOfLifeSize: number;
+    metatronNodeCount: number;
+    metatronSize: number;
+    torusRingCount: number;
+    torusThickness: number;
+    labyrinthComplexity: number;
+    labyrinthPathWidth: number;
+    vortexSpiralCount: number;
+    vortexRotationSpeed: number;
+    dragonEyeSize: number;
+    dragonPupilSize: number;
+    ancientGlyphCount: number;
+    ancientGlyphSize: number;
+    platonicSize: number;
+    platonicRotationSpeed: number;
+    cosmicLotusLayerCount: number;
+    cosmicLotusPetalCount: number;
   } | null>(null);
 
   // Get available patterns on mount
@@ -146,6 +183,43 @@ export default function PatternControls({
         galaxyArmCount: renderer.getGalaxyArmCount(),
         auroraIntensity: renderer.getAuroraIntensity(),
         mandalaLayers: renderer.getMandalaLayers(),
+        tarotCardSize: renderer.getTarotCardSize(),
+        tarotCardCount: renderer.getTarotCardCount(),
+        sacredSpiralCount: renderer.getSacredSpiralCount(),
+        sacredSpiralTightness: renderer.getSacredSpiralTightness(),
+        pentagramSize: renderer.getPentagramSize(),
+        pentagramRotationSpeed: renderer.getPentagramRotationSpeed(),
+        runeSize: renderer.getRuneSize(),
+        runeCount: renderer.getRuneCount(),
+        sigilCount: renderer.getSigilCount(),
+        sigilSize: renderer.getSigilSize(),
+        chakraSize: renderer.getChakraSize(),
+        chakraSpacing: renderer.getChakraSpacing(),
+        portalSize: renderer.getPortalSize(),
+        portalRingCount: renderer.getPortalRingCount(),
+        phoenixWingSpan: renderer.getPhoenixWingSpan(),
+        crystalGridSize: renderer.getCrystalGridSize(),
+        crystalCount: renderer.getCrystalCount(),
+        moonPhaseCount: renderer.getMoonPhaseCount(),
+        moonPhaseSize: renderer.getMoonPhaseSize(),
+        flowerOfLifeCircleCount: renderer.getFlowerOfLifeCircleCount(),
+        flowerOfLifeSize: renderer.getFlowerOfLifeSize(),
+        metatronNodeCount: renderer.getMetatronNodeCount(),
+        metatronSize: renderer.getMetatronSize(),
+        torusRingCount: renderer.getTorusRingCount(),
+        torusThickness: renderer.getTorusThickness(),
+        labyrinthComplexity: renderer.getLabyrinthComplexity(),
+        labyrinthPathWidth: renderer.getLabyrinthPathWidth(),
+        vortexSpiralCount: renderer.getVortexSpiralCount(),
+        vortexRotationSpeed: renderer.getVortexRotationSpeed(),
+        dragonEyeSize: renderer.getDragonEyeSize(),
+        dragonPupilSize: renderer.getDragonPupilSize(),
+        ancientGlyphCount: renderer.getAncientGlyphCount(),
+        ancientGlyphSize: renderer.getAncientGlyphSize(),
+        platonicSize: renderer.getPlatonicSize(),
+        platonicRotationSpeed: renderer.getPlatonicRotationSpeed(),
+        cosmicLotusLayerCount: renderer.getCosmicLotusLayerCount(),
+        cosmicLotusPetalCount: renderer.getCosmicLotusPetalCount(),
       });
     };
 
@@ -698,6 +772,533 @@ export default function PatternControls({
                 step={1}
                 decimals={0}
                 onChange={(value) => renderer.setMandalaLayers(value)}
+              />
+            </div>
+          )}
+
+          {/* Tarot Controls */}
+          {rawCurrentPattern === "tarot" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Tarot Controls
+              </h4>
+              <SliderControl
+                label="Card Size"
+                value={patternParams.tarotCardSize}
+                min={0.5}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setTarotCardSize(value)}
+              />
+              <SliderControl
+                label="Card Count"
+                value={patternParams.tarotCardCount}
+                min={3}
+                max={22}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setTarotCardCount(value)}
+              />
+            </div>
+          )}
+
+          {/* Sacred Spiral Controls */}
+          {rawCurrentPattern === "sacredSpiral" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Sacred Spiral Controls
+              </h4>
+              <SliderControl
+                label="Spiral Count"
+                value={patternParams.sacredSpiralCount}
+                min={1}
+                max={8}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setSacredSpiralCount(value)}
+              />
+              <SliderControl
+                label="Spiral Tightness"
+                value={patternParams.sacredSpiralTightness}
+                min={0.1}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setSacredSpiralTightness(value)}
+              />
+            </div>
+          )}
+
+          {/* Pentagram Controls */}
+          {rawCurrentPattern === "pentagram" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Pentagram Controls
+              </h4>
+              <SliderControl
+                label="Size"
+                value={patternParams.pentagramSize}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setPentagramSize(value)}
+              />
+              <SliderControl
+                label="Rotation Speed"
+                value={patternParams.pentagramRotationSpeed}
+                min={0.1}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setPentagramRotationSpeed(value)}
+              />
+            </div>
+          )}
+
+          {/* Runes Controls */}
+          {rawCurrentPattern === "runes" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Runes Controls
+              </h4>
+              <SliderControl
+                label="Rune Size"
+                value={patternParams.runeSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setRuneSize(value)}
+              />
+              <SliderControl
+                label="Rune Count"
+                value={patternParams.runeCount}
+                min={4}
+                max={16}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setRuneCount(value)}
+              />
+            </div>
+          )}
+
+          {/* Sigils Controls */}
+          {rawCurrentPattern === "sigils" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Sigils Controls
+              </h4>
+              <SliderControl
+                label="Sigil Count"
+                value={patternParams.sigilCount}
+                min={3}
+                max={12}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setSigilCount(value)}
+              />
+              <SliderControl
+                label="Sigil Size"
+                value={patternParams.sigilSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setSigilSize(value)}
+              />
+            </div>
+          )}
+
+          {/* Chakras Controls */}
+          {rawCurrentPattern === "chakras" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Chakras Controls
+              </h4>
+              <SliderControl
+                label="Chakra Size"
+                value={patternParams.chakraSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setChakraSize(value)}
+              />
+              <SliderControl
+                label="Chakra Spacing"
+                value={patternParams.chakraSpacing}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setChakraSpacing(value)}
+              />
+            </div>
+          )}
+
+          {/* Portal Controls */}
+          {rawCurrentPattern === "portal" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Portal Controls
+              </h4>
+              <SliderControl
+                label="Portal Size"
+                value={patternParams.portalSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setPortalSize(value)}
+              />
+              <SliderControl
+                label="Ring Count"
+                value={patternParams.portalRingCount}
+                min={3}
+                max={12}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setPortalRingCount(value)}
+              />
+            </div>
+          )}
+
+          {/* Phoenix Controls */}
+          {rawCurrentPattern === "phoenix" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Phoenix Controls
+              </h4>
+              <SliderControl
+                label="Wing Span"
+                value={patternParams.phoenixWingSpan}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setPhoenixWingSpan(value)}
+              />
+            </div>
+          )}
+
+          {/* Crystal Grid Controls */}
+          {rawCurrentPattern === "crystalGrid" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Crystal Grid Controls
+              </h4>
+              <SliderControl
+                label="Crystal Size"
+                value={patternParams.crystalGridSize}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setCrystalGridSize(value)}
+              />
+              <SliderControl
+                label="Crystal Count"
+                value={patternParams.crystalCount}
+                min={6}
+                max={24}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setCrystalCount(value)}
+              />
+            </div>
+          )}
+
+          {/* Moon Phases Controls */}
+          {rawCurrentPattern === "moonPhases" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Moon Phases Controls
+              </h4>
+              <SliderControl
+                label="Phase Count"
+                value={patternParams.moonPhaseCount}
+                min={4}
+                max={13}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setMoonPhaseCount(value)}
+              />
+              <SliderControl
+                label="Moon Size"
+                value={patternParams.moonPhaseSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setMoonPhaseSize(value)}
+              />
+            </div>
+          )}
+
+          {/* Flower of Life Controls */}
+          {rawCurrentPattern === "flowerOfLife" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Flower of Life Controls
+              </h4>
+              <SliderControl
+                label="Circle Count"
+                value={patternParams.flowerOfLifeCircleCount}
+                min={1}
+                max={19}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setFlowerOfLifeCircleCount(value)}
+              />
+              <SliderControl
+                label="Pattern Size"
+                value={patternParams.flowerOfLifeSize}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setFlowerOfLifeSize(value)}
+              />
+            </div>
+          )}
+
+          {/* Metatron Controls */}
+          {rawCurrentPattern === "metatron" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Metatron's Cube Controls
+              </h4>
+              <SliderControl
+                label="Node Count"
+                value={patternParams.metatronNodeCount}
+                min={7}
+                max={19}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setMetatronNodeCount(value)}
+              />
+              <SliderControl
+                label="Cube Size"
+                value={patternParams.metatronSize}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setMetatronSize(value)}
+              />
+            </div>
+          )}
+
+          {/* Torus Field Controls */}
+          {rawCurrentPattern === "torusField" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Torus Field Controls
+              </h4>
+              <SliderControl
+                label="Ring Count"
+                value={patternParams.torusRingCount}
+                min={6}
+                max={24}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setTorusRingCount(value)}
+              />
+              <SliderControl
+                label="Torus Thickness"
+                value={patternParams.torusThickness}
+                min={0.3}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setTorusThickness(value)}
+              />
+            </div>
+          )}
+
+          {/* Labyrinth Controls */}
+          {rawCurrentPattern === "labyrinth" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Labyrinth Controls
+              </h4>
+              <SliderControl
+                label="Complexity"
+                value={patternParams.labyrinthComplexity}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setLabyrinthComplexity(value)}
+              />
+              <SliderControl
+                label="Path Width"
+                value={patternParams.labyrinthPathWidth}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setLabyrinthPathWidth(value)}
+              />
+            </div>
+          )}
+
+          {/* Vortex Spiral Controls */}
+          {rawCurrentPattern === "vortexSpiral" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Vortex Spiral Controls
+              </h4>
+              <SliderControl
+                label="Spiral Count"
+                value={patternParams.vortexSpiralCount}
+                min={2}
+                max={12}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setVortexSpiralCount(value)}
+              />
+              <SliderControl
+                label="Rotation Speed"
+                value={patternParams.vortexRotationSpeed}
+                min={0.1}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setVortexRotationSpeed(value)}
+              />
+            </div>
+          )}
+
+          {/* Dragon Eye Controls */}
+          {rawCurrentPattern === "dragonEye" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Dragon Eye Controls
+              </h4>
+              <SliderControl
+                label="Eye Size"
+                value={patternParams.dragonEyeSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setDragonEyeSize(value)}
+              />
+              <SliderControl
+                label="Pupil Size"
+                value={patternParams.dragonPupilSize}
+                min={0.3}
+                max={1.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setDragonPupilSize(value)}
+              />
+            </div>
+          )}
+
+          {/* Ancient Glyphs Controls */}
+          {rawCurrentPattern === "ancientGlyphs" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Ancient Glyphs Controls
+              </h4>
+              <SliderControl
+                label="Glyph Count"
+                value={patternParams.ancientGlyphCount}
+                min={8}
+                max={32}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setAncientGlyphCount(value)}
+              />
+              <SliderControl
+                label="Glyph Size"
+                value={patternParams.ancientGlyphSize}
+                min={0.5}
+                max={2.5}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setAncientGlyphSize(value)}
+              />
+            </div>
+          )}
+
+          {/* Platonic Solids Controls */}
+          {rawCurrentPattern === "platonic" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Platonic Solids Controls
+              </h4>
+              <SliderControl
+                label="Solid Size"
+                value={patternParams.platonicSize}
+                min={0.5}
+                max={2.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setPlatonicSize(value)}
+              />
+              <SliderControl
+                label="Rotation Speed"
+                value={patternParams.platonicRotationSpeed}
+                min={0.1}
+                max={3.0}
+                step={0.1}
+                decimals={1}
+                unit="x"
+                onChange={(value) => renderer.setPlatonicRotationSpeed(value)}
+              />
+            </div>
+          )}
+
+          {/* Cosmic Lotus Controls */}
+          {rawCurrentPattern === "cosmicLotus" && (
+            <div className="mb-6 space-y-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text)]">
+                Cosmic Lotus Controls
+              </h4>
+              <SliderControl
+                label="Layer Count"
+                value={patternParams.cosmicLotusLayerCount}
+                min={2}
+                max={12}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setCosmicLotusLayerCount(value)}
+              />
+              <SliderControl
+                label="Petal Count"
+                value={patternParams.cosmicLotusPetalCount}
+                min={4}
+                max={16}
+                step={1}
+                decimals={0}
+                onChange={(value) => renderer.setCosmicLotusPetalCount(value)}
               />
             </div>
           )}
