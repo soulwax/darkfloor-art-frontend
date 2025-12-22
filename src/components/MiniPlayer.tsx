@@ -86,6 +86,34 @@ export default function MiniPlayer({
       {/* Auto-Queue Badge */}
       <AutoQueueBadge count={lastAutoQueueCount} />
 
+      {/* Pull-up Indicator Handle */}
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+        <motion.div
+          animate={{
+            y: [0, -3, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="flex flex-col items-center gap-1"
+        >
+          <div className="w-10 h-1 rounded-full bg-[var(--color-accent)]/60 shadow-lg shadow-[var(--color-accent)]/30" />
+          <svg
+            className="h-4 w-4 text-[var(--color-accent)]/40"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </motion.div>
+      </div>
+
       {/* Progress Bar */}
       <div
         className="h-1 w-full cursor-pointer bg-[rgba(255,255,255,0.12)]"
@@ -101,11 +129,19 @@ export default function MiniPlayer({
 
       {/* Mini Player Content */}
       <motion.div
-        className="flex cursor-pointer items-center gap-4 px-5 py-4"
+        className="flex cursor-pointer items-center gap-4 px-5 py-4 relative group"
         onTap={handleContainerTap}
         whileTap={{ scale: 0.99 }}
         transition={springPresets.snappy}
       >
+        {/* Tap to Expand Hint */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-active:opacity-100 transition-opacity pointer-events-none">
+          <div className="bg-[var(--color-accent)]/20 backdrop-blur-sm px-4 py-2 rounded-full border border-[var(--color-accent)]/30">
+            <span className="text-xs font-semibold text-[var(--color-accent)] uppercase tracking-wide">
+              Tap to Expand
+            </span>
+          </div>
+        </div>
         {currentTrack.album.cover_small ? (
           <Image
             src={currentTrack.album.cover_small}
@@ -132,14 +168,23 @@ export default function MiniPlayer({
         <motion.button
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
             hapticLight();
             onPlayPause();
           }}
-          whileTap={{ scale: 0.9 }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            hapticLight();
+            onPlayPause();
+          }}
+          data-drag-exempt="true"
+          whileTap={{ scale: 0.85 }}
           whileHover={{ scale: 1.05 }}
           transition={springPresets.snappy}
-          className="touch-target-lg flex-shrink-0 text-[var(--color-text)]"
+          className="touch-target-lg flex-shrink-0 text-[var(--color-text)] active:bg-[var(--color-accent)]/10 rounded-full p-2 transition-colors"
           aria-label={isPlaying ? "Pause track" : "Play track"}
+          type="button"
         >
           {isPlaying ? (
             <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
@@ -162,16 +207,25 @@ export default function MiniPlayer({
         <motion.button
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
             hapticLight();
             onNext();
           }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            hapticLight();
+            onNext();
+          }}
+          data-drag-exempt="true"
           disabled={queue.length === 0}
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.85 }}
           whileHover={{ scale: 1.05 }}
           transition={springPresets.snappy}
-          className="touch-target-lg flex-shrink-0 text-[var(--color-subtext)] hover:text-[var(--color-text)] disabled:opacity-50"
+          className="touch-target-lg flex-shrink-0 text-[var(--color-subtext)] hover:text-[var(--color-text)] disabled:opacity-50 active:bg-[var(--color-accent)]/10 rounded-full p-2 transition-colors disabled:active:bg-transparent"
           aria-label="Next track"
           aria-disabled={queue.length === 0}
+          type="button"
         >
           <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20">
             <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
