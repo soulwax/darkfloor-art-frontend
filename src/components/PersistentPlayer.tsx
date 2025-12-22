@@ -212,18 +212,6 @@ export default function PersistentPlayer() {
               onReorder={player.reorderQueue}
               onPlayFrom={player.playFromQueue}
               onSaveAsPlaylist={player.saveQueueAsPlaylist}
-              onAddSimilarTracks={
-                player.addSimilarTracks ??
-                (() => {
-                  /* No similar tracks available */
-                })
-              }
-              onGenerateSmartMix={
-                player.generateSmartMix ??
-                (() => {
-                  /* Smart mix not available */
-                })
-              }
             />
           )}
         </>
@@ -288,18 +276,6 @@ export default function PersistentPlayer() {
               onReorder={player.reorderQueue}
               onPlayFrom={player.playFromQueue}
               onSaveAsPlaylist={player.saveQueueAsPlaylist}
-              onAddSimilarTracks={
-                player.addSimilarTracks ??
-                (() => {
-                  /* No similar tracks available */
-                })
-              }
-              onGenerateSmartMix={
-                player.generateSmartMix ??
-                (() => {
-                  /* Smart mix not available */
-                })
-              }
             />
           )}
         </>

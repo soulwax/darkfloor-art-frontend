@@ -47,8 +47,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [originalQueueOrder, setOriginalQueueOrder] = useState<Track[]>([]);
-  const autoQueueTriggeredRef = useRef(false);
-  const [lastAutoQueueCount, setLastAutoQueueCount] = useState(0);
+  // COMMENTED OUT - Auto-queue disabled
+  // const autoQueueTriggeredRef = useRef(false);
+  const [lastAutoQueueCount] = useState(0); // Keep for compatibility but always 0
   const loadIdRef = useRef(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
@@ -806,76 +807,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     [currentTime, seek],
   );
 
-  // Smart Queue: Auto-add tracks when queue is low (runs silently in background)
-  useEffect(() => {
-    const checkAutoQueue = async () => {
-      // Don't trigger if already queuing or no settings provided
-      if (autoQueueTriggeredRef.current || !smartQueueSettings || !currentTrack) {
-        return;
-      }
-
-      const settings = smartQueueSettings;
-
-      // Check if auto-queue is enabled and threshold is met
-      if (
-        settings.autoQueueEnabled &&
-        queue.length <= settings.autoQueueThreshold
-      ) {
-        // Prevent multiple simultaneous triggers
-        autoQueueTriggeredRef.current = true;
-
-        try {
-          // Call the callback to fetch recommendations
-          if (onAutoQueueTrigger) {
-            const recommendations = await onAutoQueueTrigger(
-              currentTrack,
-              queue.length,
-            );
-
-            // Calculate how many tracks to add:
-            // - Always add at least 5 tracks
-            // - OR fill up to 8 if queue has fewer than 8 tracks
-            const targetCount = Math.max(5, 8 - queue.length);
-
-            console.log("[SmartQueue] 🎯 Auto-queue calculation:", {
-              currentQueueLength: queue.length,
-              targetCount,
-              availableRecommendations: recommendations.length,
-            });
-
-            // Add recommendations to queue
-            if (recommendations.length > 0) {
-              const tracksToAdd = recommendations.slice(0, targetCount);
-              addToQueue(tracksToAdd, false);
-
-              // Update count for badge display (ephemeral notification)
-              setLastAutoQueueCount(tracksToAdd.length);
-
-              // Reset badge count after 3 seconds
-              setTimeout(() => {
-                setLastAutoQueueCount(0);
-              }, 3000);
-            }
-          }
-        } catch (error) {
-          console.error("Auto-queue failed:", error);
-        } finally {
-          // Reset trigger flag after a delay to allow re-triggering
-          setTimeout(() => {
-            autoQueueTriggeredRef.current = false;
-          }, 5000);
-        }
-      }
-    };
-
-    void checkAutoQueue();
-  }, [
-    queue.length,
-    currentTrack,
-    smartQueueSettings,
-    onAutoQueueTrigger,
-    addToQueue,
-  ]);
+  // COMMENTED OUT - Smart Queue auto-queue disabled
+  // useEffect(() => {
+  //   // Auto-queue functionality disabled - users will manually add tracks to queue
+  // }, []);
 
   // Cleanup retry timeout on unmount
   useEffect(() => {

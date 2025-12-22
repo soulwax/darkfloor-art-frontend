@@ -179,11 +179,12 @@ interface EnhancedQueueProps {
   onReorder: (oldIndex: number, newIndex: number) => void;
   onPlayFrom: (index: number) => void;
   onSaveAsPlaylist?: () => void;
-  onAddSimilarTracks?: (trackId: number, count?: number) => Promise<void>;
-  onGenerateSmartMix?: (
-    seedTrackIds: number[],
-    count?: number,
-  ) => Promise<void>;
+  // COMMENTED OUT - Smart queue features disabled
+  // onAddSimilarTracks?: (trackId: number, count?: number) => Promise<void>;
+  // onGenerateSmartMix?: (
+  //   seedTrackIds: number[],
+  //   count?: number,
+  // ) => Promise<void>;
 }
 
 export function EnhancedQueue({
@@ -195,17 +196,19 @@ export function EnhancedQueue({
   onReorder,
   onPlayFrom,
   onSaveAsPlaylist,
-  onAddSimilarTracks,
-  onGenerateSmartMix,
+  // COMMENTED OUT - Smart queue props disabled
+  // onAddSimilarTracks,
+  // onGenerateSmartMix,
 }: EnhancedQueueProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSettings, setShowSettings] = useState(false);
-  const [addingSimilar, setAddingSimilar] = useState(false);
-  const [generatingMix, setGeneratingMix] = useState(false);
-  const [showAutoQueueInfo, setShowAutoQueueInfo] = useState(false);
-  const [settingsDraft, setSettingsDraft] = useState<SmartQueueSettings | null>(
-    null,
-  );
+  // COMMENTED OUT - Smart queue UI state disabled
+  // const [showSettings, setShowSettings] = useState(false);
+  // const [addingSimilar, setAddingSimilar] = useState(false);
+  // const [generatingMix, setGeneratingMix] = useState(false);
+  // const [showAutoQueueInfo, setShowAutoQueueInfo] = useState(false);
+  // const [settingsDraft, setSettingsDraft] = useState<SmartQueueSettings | null>(
+  //   null,
+  // );
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -297,175 +300,14 @@ export function EnhancedQueue({
     }
   };
 
-  // Fetch smart queue settings
-  const { data: smartQueueSettings } = api.music.getSmartQueueSettings.useQuery(
-    undefined,
-    {
-      enabled: isAuthenticated,
-    },
-  );
-
-  useEffect(() => {
-    if (smartQueueSettings) {
-      setSettingsDraft(smartQueueSettings);
-    }
-  }, [smartQueueSettings]);
-
-  // Update settings mutation with proper invalidation
-  const updateSettings = api.music.updateSmartQueueSettings.useMutation({
-    onSuccess: () => {
-      void utils.music.getSmartQueueSettings.invalidate();
-    },
-    onError: (error) => {
-      console.error("[EnhancedQueue] ❌ Failed to update settings:", error);
-      showToast("Failed to update settings", "error");
-    },
-  });
-
-  const effectiveSettings = settingsDraft ?? smartQueueSettings;
-
-  // Handle adding similar tracks
-  const handleAddSimilar = async () => {
-    console.log("[EnhancedQueue] 🎯 Add Similar Tracks button clicked");
-
-    if (!currentTrack || !onAddSimilarTracks) {
-      console.log("[EnhancedQueue] ❌ Cannot add similar tracks:", {
-        hasCurrentTrack: !!currentTrack,
-        hasCallback: !!onAddSimilarTracks,
-      });
-      showToast("No track currently playing", "error");
-      return;
-    }
-
-    if (!isAuthenticated) {
-      showToast("Sign in to use smart queue features", "info");
-      return;
-    }
-
-    console.log("[EnhancedQueue] 📋 Request details:", {
-      trackId: currentTrack.id,
-      trackTitle: currentTrack.title,
-      trackArtist: currentTrack.artist.name,
-      count: effectiveSettings?.autoQueueCount ?? 5,
-    });
-
-    setAddingSimilar(true);
-    const count = effectiveSettings?.autoQueueCount ?? 5;
-    showToast(`Finding ${count} similar tracks...`, "info");
-
-    try {
-      console.log("[EnhancedQueue] 🚀 Calling onAddSimilarTracks callback...");
-      await onAddSimilarTracks(currentTrack.id, count);
-      console.log("[EnhancedQueue] ✅ Successfully added similar tracks");
-      // Don't show toast here - AudioPlayerContext already shows it with actual count
-    } catch (error) {
-      console.error("[EnhancedQueue] ❌ Error adding similar tracks:", error);
-      showToast("Failed to add similar tracks", "error");
-    } finally {
-      setAddingSimilar(false);
-      console.log("[EnhancedQueue] 🏁 Add similar tracks operation completed");
-    }
-  };
-
-  // Handle generating smart mix from queue
-  const handleGenerateSmartMix = async () => {
-    console.log("[EnhancedQueue] ⚡ Generate Smart Mix button clicked");
-
-    if (!onGenerateSmartMix || queue.length === 0) {
-      console.log("[EnhancedQueue] ❌ Cannot generate smart mix:", {
-        hasCallback: !!onGenerateSmartMix,
-        queueLength: queue.length,
-      });
-      showToast("Queue is empty", "error");
-      return;
-    }
-
-    if (!isAuthenticated) {
-      showToast("Sign in to use smart queue features", "info");
-      return;
-    }
-
-    // Confirm before clearing queue
-    if (
-      !confirm(
-        "This will replace your current queue with a smart mix based on your current tracks. Continue?",
-      )
-    ) {
-      return;
-    }
-
-    setGeneratingMix(true);
-    try {
-      // Use current track and first few tracks from queue as seeds
-      const seedTracks = [
-        ...(currentTrack ? [currentTrack] : []),
-        ...queue.slice(0, 4), // Take first 4 tracks from queue
-      ];
-      const seedTrackIds = [...new Set(seedTracks.map((t) => t.id))]; // Remove duplicates
-
-      console.log("[EnhancedQueue] 📋 Smart mix details:", {
-        seedCount: seedTracks.length,
-        seedTrackIds,
-        seedTitles: seedTracks.map((t) => `${t.title} - ${t.artist.name}`),
-        targetCount: 50,
-      });
-
-      showToast("Generating smart mix...", "info");
-      console.log("[EnhancedQueue] 🚀 Calling onGenerateSmartMix callback...");
-      await onGenerateSmartMix(seedTrackIds, 50);
-      console.log("[EnhancedQueue] ✅ Successfully generated smart mix");
-      // Don't show toast here - AudioPlayerContext already shows it with actual count
-    } catch (error) {
-      console.error("[EnhancedQueue] ❌ Error generating smart mix:", error);
-      showToast("Failed to generate smart mix", "error");
-    } finally {
-      setGeneratingMix(false);
-      console.log("[EnhancedQueue] 🏁 Generate smart mix operation completed");
-    }
-  };
-
-  // Toggle auto-queue
-  const handleToggleAutoQueue = async () => {
-    console.log("[EnhancedQueue] 🔄 Auto-queue toggle clicked");
-
-    if (!isAuthenticated) {
-      showToast("Sign in to use smart queue features", "info");
-      return;
-    }
-
-    if (!effectiveSettings) {
-      console.log("[EnhancedQueue] ❌ No smart queue settings available");
-      showToast("Settings not loaded", "error");
-      return;
-    }
-
-    const newValue = !effectiveSettings.autoQueueEnabled;
-    console.log("[EnhancedQueue] 📋 Toggling auto-queue:", {
-      currentValue: effectiveSettings.autoQueueEnabled,
-      newValue,
-    });
-
-    try {
-      console.log("[EnhancedQueue] 🚀 Calling updateSettings mutation...");
-      await updateSettings.mutateAsync({
-        autoQueueEnabled: newValue,
-      });
-      console.log("[EnhancedQueue] ✅ Auto-queue setting updated successfully");
-      setSettingsDraft((prev) =>
-        prev ? { ...prev, autoQueueEnabled: newValue } : prev,
-      );
-      showToast(
-        newValue ? "Auto-queue enabled" : "Auto-queue disabled",
-        "success",
-      );
-    } catch (error) {
-      console.error(
-        "[EnhancedQueue] ❌ Error updating auto-queue setting:",
-        error,
-      );
-      showToast("Failed to update auto-queue", "error");
-    }
-  };
+  // COMMENTED OUT - Smart queue settings and handlers disabled
+  // const { data: smartQueueSettings } = api.music.getSmartQueueSettings.useQuery(
+  //   undefined,
+  //   {
+  //     enabled: isAuthenticated,
+  //   },
+  // );
+  // ... (all smart queue functions commented out)
   const filteredQueue = useMemo(() => {
     if (!searchQuery.trim()) {
       return queueEntries;
@@ -492,7 +334,8 @@ export function EnhancedQueue({
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            {currentTrack && onAddSimilarTracks && (
+            {/* COMMENTED OUT - Smart queue buttons disabled */}
+            {/* {currentTrack && onAddSimilarTracks && (
               <button
                 onClick={handleAddSimilar}
                 disabled={addingSimilar}
@@ -506,8 +349,8 @@ export function EnhancedQueue({
                   <Sparkles className="h-5 w-5" />
                 )}
               </button>
-            )}
-            {queue.length > 0 && onGenerateSmartMix && (
+            )} */}
+            {/* {queue.length > 0 && onGenerateSmartMix && (
               <button
                 onClick={handleGenerateSmartMix}
                 disabled={generatingMix}
@@ -521,8 +364,8 @@ export function EnhancedQueue({
                   <Zap className="h-5 w-5 fill-current" />
                 )}
               </button>
-            )}
-            {effectiveSettings && (
+            )} */}
+            {/* {effectiveSettings && (
               <button
                 onClick={handleToggleAutoQueue}
                 className={`rounded-full p-2 transition-colors hover:bg-[rgba(244,178,102,0.12)] ${
@@ -539,15 +382,15 @@ export function EnhancedQueue({
               >
                 <Zap className="h-5 w-5" />
               </button>
-            )}
-            <button
+            )} */}
+            {/* <button
               onClick={() => setShowSettings(!showSettings)}
               className="rounded-full p-2 text-[var(--color-subtext)] transition-colors hover:bg-[rgba(244,178,102,0.12)] hover:text-[var(--color-text)]"
               aria-label="Queue settings"
               title="Queue settings"
             >
               <Settings className="h-5 w-5" />
-            </button>
+            </button> */}
             {onSaveAsPlaylist && (queue.length > 0 || currentTrack) && (
               <button
                 onClick={onSaveAsPlaylist}
@@ -600,8 +443,8 @@ export function EnhancedQueue({
           </div>
         )}
 
-        {/* Auto-Queue Info Panel */}
-        {effectiveSettings?.autoQueueEnabled && (
+        {/* COMMENTED OUT - Auto-Queue Info Panel disabled */}
+        {/* {effectiveSettings?.autoQueueEnabled && (
           <div className="rounded-lg border border-[rgba(88,198,177,0.25)] bg-[rgba(88,198,177,0.12)] p-3 shadow-inner shadow-[rgba(88,198,177,0.18)]">
             <div className="flex items-center gap-3">
               <div className="relative flex-shrink-0">
@@ -681,10 +524,10 @@ export function EnhancedQueue({
               </div>
             )}
           </div>
-        )}
+        )} */}
 
-        {/* Settings Panel */}
-        {showSettings && effectiveSettings && (
+        {/* COMMENTED OUT - Settings Panel disabled */}
+        {/* {showSettings && effectiveSettings && (
           <div className="surface-muted space-y-4 p-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[var(--color-text)]">
@@ -698,7 +541,7 @@ export function EnhancedQueue({
               </button>
             </div>
 
-            {/* Auto-queue Toggle */}
+            {/* Auto-queue Toggle *//*
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm text-[var(--color-text)]">
@@ -726,7 +569,7 @@ export function EnhancedQueue({
               </p>
             </div>
 
-            {/* Threshold Slider */}
+            {/* Threshold Slider *//*
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm text-[var(--color-text)]">
@@ -763,7 +606,7 @@ export function EnhancedQueue({
               </p>
             </div>
 
-            {/* Track Count Slider */}
+            {/* Track Count Slider *//*
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm text-[var(--color-text)]">
@@ -796,7 +639,7 @@ export function EnhancedQueue({
               />
             </div>
 
-            {/* Similarity Preference */}
+            {/* Similarity Preference *//*
             <div className="space-y-2">
               <label className="text-sm text-[var(--color-text)]">
                 Similarity Mode
@@ -854,7 +697,7 @@ export function EnhancedQueue({
           <div className="surface-muted p-4 text-sm text-[var(--color-subtext)]">
             Loading smart queue settings...
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Queue List */}
