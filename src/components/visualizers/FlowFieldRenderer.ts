@@ -9849,42 +9849,52 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
-    const maxRadius = Math.min(this.width, this.height) * 0.46;
-    const dancers = 12; 
-    const invDancers = 1 / dancers;
-    const angleStep = FlowFieldRenderer.TWO_PI * invDancers;
+    // HYPER-OPTIMIZATION: ShadowDance was extremely gradient-heavy:
+    // - per-dancer multi-step trail radial gradients
+    // - per-dancer wisp linear gradients
+    // Lower-fidelity rewrite:
+    // - Fewer dancers (LOD)
+    // - Trails are just a couple of shadowed circles (no gradients)
+    // - Wisps are simple strokes (no gradients)
+    // - Fewer vertices per dancer
+    // - Center reduced to 1 gradient layer
 
-    
-    ctx.strokeStyle = this.hsla(
-      this.fastMod360(this.hueBase + 260),
-      65,
-      20,
-      0.15 + bassIntensity * 0.15,
-    );
-    ctx.lineWidth = 1.5 + bassIntensity * 2;
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = this.hsla(this.fastMod360(this.hueBase + 260), 70, 25, 0.5);
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const halfPi = Math.PI * 0.5;
+    const maxRadius = Math.min(this.width, this.height) * 0.46;
+
+    const dancersBase = 8; // was 12
+    const dancersExtra = audioIntensity > 0.55 ? 2 : 0;
+    const dancers = dancersBase + dancersExtra; // 8–10
+    const invDancers = 1 / dancers;
+    const angleStep = twoPi * invDancers;
+
+    ctx.globalCompositeOperation = "lighter";
+
+    // Network ribbons (cheap)
+    const netHue = this.fastMod360(this.hueBase + 260);
+    ctx.strokeStyle = this.hsla(netHue, 65, 20, 0.12 + bassIntensity * 0.12);
+    ctx.lineWidth = 1.2 + bassIntensity * 1.6;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = this.hsla(netHue, 70, 25, 0.35);
 
     for (let i = 0; i < dancers; i++) {
       const baseAngle1 = angleStep * i;
-      const angle1 = baseAngle1 + this.fastSin(this.time * 0.003 + i) * 0.5;
-      const radius1 = maxRadius * (0.3 + this.fastSin(this.time * 0.004 + i * 0.5) * 0.2);
+      const angle1 = baseAngle1 + this.fastSin(this.time * 0.003 + i) * 0.45;
+      const radius1 = maxRadius * (0.32 + this.fastSin(this.time * 0.004 + i * 0.5) * 0.18);
       const x1 = this.fastCos(angle1) * radius1;
       const y1 = this.fastSin(angle1) * radius1;
 
       const nextIdx = (i + 1) % dancers;
       const baseAngle2 = angleStep * nextIdx;
-      const angle2 = baseAngle2 + this.fastSin(this.time * 0.003 + nextIdx) * 0.5;
-      const radius2 = maxRadius * (0.3 + this.fastSin(this.time * 0.004 + nextIdx * 0.5) * 0.2);
+      const angle2 = baseAngle2 + this.fastSin(this.time * 0.003 + nextIdx) * 0.45;
+      const radius2 = maxRadius * (0.32 + this.fastSin(this.time * 0.004 + nextIdx * 0.5) * 0.18);
       const x2 = this.fastCos(angle2) * radius2;
       const y2 = this.fastSin(angle2) * radius2;
 
-      
       const midX = (x1 + x2) * 0.5;
       const midY = (y1 + y2) * 0.5;
-      const curveDist = this.fastSin(this.time * 0.006 + i) * 30;
-      // HYPER-OPTIMIZATION: Use pre-calculated halfPi constant
-      const halfPi = Math.PI * 0.5;
+      const curveDist = this.fastSin(this.time * 0.006 + i) * 22;
       const perpAngle = angle1 + halfPi;
       const ctrlX = midX + this.fastCos(perpAngle) * curveDist;
       const ctrlY = midY + this.fastSin(perpAngle) * curveDist;
@@ -9897,140 +9907,99 @@ export class FlowFieldRenderer {
 
     ctx.shadowBlur = 0;
 
-    
+    // Dancers
+    const vertices = 8; // was 10
+    const invVertices = 1 / vertices;
+    const trailSteps = 2; // was 4..0 with gradients
+
     for (let dancer = 0; dancer < dancers; dancer++) {
       const baseAngle = angleStep * dancer;
-      const angle = baseAngle + this.fastSin(this.time * 0.003 + dancer) * 0.5;
-      const radius = maxRadius * (0.3 + this.fastSin(this.time * 0.004 + dancer * 0.5) * 0.2);
+      const angle = baseAngle + this.fastSin(this.time * 0.003 + dancer) * 0.45;
+      const radius = maxRadius * (0.32 + this.fastSin(this.time * 0.004 + dancer * 0.5) * 0.18);
       const x = this.fastCos(angle) * radius;
       const y = this.fastSin(angle) * radius;
 
-      const hue = this.fastMod360(this.hueBase + 250 + dancer * 8);
-      const size = 20 + this.fastSin(this.time * 0.005 + dancer) * 8 + trebleIntensity * 6;
-      const alpha = 0.4 + this.fastSin(this.time * 0.004 + dancer) * 0.2 + trebleIntensity * 0.3;
+      const hue = this.fastMod360(this.hueBase + 250 + dancer * 10);
+      const size = 16 + trebleIntensity * 7 + this.fastSin(this.time * 0.005 + dancer) * 6;
+      const alpha = 0.28 + trebleIntensity * 0.28 + this.fastSin(this.time * 0.004 + dancer) * 0.12;
 
-      
-      for (let trail = 4; trail >= 0; trail--) {
-        const trailOffset = trail * 0.08;
-        const trailAngle = baseAngle + this.fastSin(this.time * 0.003 + dancer - trailOffset) * 0.5;
-        const trailRadius =
-          maxRadius * (0.3 + this.fastSin(this.time * 0.004 + dancer * 0.5 - trailOffset) * 0.2);
-        const trailX = this.fastCos(trailAngle) * trailRadius;
-        const trailY = this.fastSin(trailAngle) * trailRadius;
-        const trailAlpha = alpha * (1 - trail * 0.18);
-        const trailSize = size * (1 - trail * 0.08);
-
-        if (trail > 0) {
-          const shadowGradient = ctx.createRadialGradient(
-            trailX,
-            trailY,
-            0,
-            trailX,
-            trailY,
-            trailSize,
-          );
-          shadowGradient.addColorStop(
-            0,
-            this.hsla(hue, 70, 30, trailAlpha * 0.4),
-          );
-          shadowGradient.addColorStop(
-            0.5,
-            this.hsla(this.fastMod360(hue + 10), 60, 25, trailAlpha * 0.25),
-          );
-          shadowGradient.addColorStop(1, this.hsla(this.fastMod360(hue + 20), 50, 20, 0));
-
-          ctx.fillStyle = shadowGradient;
-          ctx.beginPath();
-          ctx.arc(trailX, trailY, trailSize, 0, FlowFieldRenderer.TWO_PI);
-          ctx.fill();
-        }
+      // Cheap trail: 2 shadowed circles
+      ctx.shadowBlur = 16 + bassIntensity * 10;
+      ctx.shadowColor = this.hsla(hue, 80, 25, 0.45);
+      for (let t = 1; t <= trailSteps; t++) {
+        const off = t * 0.085;
+        const tx = this.fastCos(baseAngle + this.fastSin(this.time * 0.003 + dancer - off) * 0.45) *
+          (maxRadius * (0.32 + this.fastSin(this.time * 0.004 + dancer * 0.5 - off) * 0.18));
+        const ty = this.fastSin(baseAngle + this.fastSin(this.time * 0.003 + dancer - off) * 0.45) *
+          (maxRadius * (0.32 + this.fastSin(this.time * 0.004 + dancer * 0.5 - off) * 0.18));
+        const ta = alpha * (0.55 - t * 0.18);
+        ctx.fillStyle = this.hsla(hue, 70, 28, ta);
+        ctx.beginPath();
+        ctx.arc(tx, ty, size * (0.75 - t * 0.12), 0, twoPi);
+        ctx.fill();
       }
+      ctx.shadowBlur = 0;
 
-      const vertices = 10;
-      const invVertices = 1 / vertices;
+      // Body
       ctx.fillStyle = this.hsla(hue, 70, 30, alpha);
-      ctx.shadowBlur = 25 + bassIntensity * 15;
-      ctx.shadowColor = this.hsla(hue, 80, 25, 0.7);
-
+      ctx.shadowBlur = 18 + bassIntensity * 10;
+      ctx.shadowColor = this.hsla(hue, 80, 25, 0.55);
       ctx.beginPath();
       for (let v = 0; v <= vertices; v++) {
-        const vAngle = FlowFieldRenderer.TWO_PI * v * invVertices;
-        const isOuter = v % 2 === 0;
-        const morphFactor = 1 + this.fastSin(vAngle * 3 + this.time * 0.008 + dancer) * 0.3;
-        const vRadius = isOuter ? size * morphFactor : size * 0.5 * morphFactor;
+        const vAngle = twoPi * v * invVertices;
+        const isOuter = (v & 1) === 0;
+        const morph = 1 + this.fastSin(vAngle * 3 + this.time * 0.008 + dancer) * 0.22;
+        const vRadius = (isOuter ? size : size * 0.55) * morph;
         const vx = x + this.fastCos(vAngle + angle) * vRadius;
         const vy = y + this.fastSin(vAngle + angle) * vRadius;
-
-        if (v === 0) {
-          ctx.moveTo(vx, vy);
-        } else {
-          ctx.lineTo(vx, vy);
-        }
+        if (v === 0) ctx.moveTo(vx, vy);
+        else ctx.lineTo(vx, vy);
       }
       ctx.closePath();
       ctx.fill();
-
       ctx.shadowBlur = 0;
 
-      
-      ctx.strokeStyle = this.hsla(hue, 80, 40, alpha * 0.8);
-      ctx.lineWidth = 2 + bassIntensity * 1.5;
+      // Orbit ring
+      ctx.strokeStyle = this.hsla(hue, 80, 40, alpha * 0.7);
+      ctx.lineWidth = 1.5 + bassIntensity * 1.2;
       ctx.beginPath();
-      ctx.arc(x, y, size * 0.6, 0, FlowFieldRenderer.TWO_PI);
+      ctx.arc(x, y, size * 0.55, 0, twoPi);
       ctx.stroke();
 
-      const wispCount = 6 + ((bassIntensity * 2) | 0);
-      const wispAngleStep = FlowFieldRenderer.TWO_PI / wispCount;
-
+      // Wisps: fewer and no gradients
+      const wispCount = 3 + ((bassIntensity * 2) | 0); // was 6+
+      const invWisp = 1 / wispCount;
+      const timeW = this.time * 0.01;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = this.hsla(hue, 80, 35, alpha * 0.25);
+      ctx.strokeStyle = this.hsla(hue, 70, 35, alpha * 0.55);
+      ctx.lineWidth = 1.4 + bassIntensity * 0.9;
       for (let w = 0; w < wispCount; w++) {
-        const wispBaseAngle = wispAngleStep * w + angle;
-        const wispLength = 15 + this.fastSin(this.time * 0.01 + dancer + w) * 8 + trebleIntensity * 10;
-        const wispEndX = x + this.fastCos(wispBaseAngle) * wispLength;
-        const wispEndY = y + this.fastSin(wispBaseAngle) * wispLength;
-
-        const wispGradient = ctx.createLinearGradient(x, y, wispEndX, wispEndY);
-        wispGradient.addColorStop(0, this.hsla(hue, 70, 35, alpha * 0.6));
-        wispGradient.addColorStop(1, this.hsla(this.fastMod360(hue + 15), 60, 30, 0));
-
-        ctx.strokeStyle = wispGradient;
-        ctx.lineWidth = 2 + bassIntensity;
+        const wa = twoPi * w * invWisp + angle;
+        const wl = 10 + trebleIntensity * 10 + this.fastSin(timeW + dancer + w) * 6;
+        const ex = x + this.fastCos(wa) * wl;
+        const ey = y + this.fastSin(wa) * wl;
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(wispEndX, wispEndY);
+        ctx.lineTo(ex, ey);
         ctx.stroke();
       }
+      ctx.shadowBlur = 0;
     }
 
-    for (let layer = 0; layer < 3; layer++) {
-      const layerRadius = maxRadius * (0.24 - layer * 0.06);
-      const layerAlpha = (0.8 - layer * 0.2) + audioIntensity * 0.2;
+    // Center: 1 gradient (was 3)
+    const centerRadius = maxRadius * (0.2 + audioIntensity * 0.05);
+    const centerHue = this.fastMod360(this.hueBase + 255);
+    const danceCenter = ctx.createRadialGradient(0, 0, 0, 0, 0, centerRadius);
+    danceCenter.addColorStop(0, this.hsla(centerHue, 60, 16, 0.75 + audioIntensity * 0.2));
+    danceCenter.addColorStop(0.6, this.hsla(this.fastMod360(centerHue - 10), 70, 20, 0.35 + trebleIntensity * 0.25));
+    danceCenter.addColorStop(1, this.hsla(this.fastMod360(centerHue - 20), 80, 25, 0));
+    ctx.fillStyle = danceCenter;
+    ctx.beginPath();
+    ctx.arc(0, 0, centerRadius, 0, twoPi);
+    ctx.fill();
 
-      const danceCenter = ctx.createRadialGradient(0, 0, 0, 0, 0, layerRadius);
-      danceCenter.addColorStop(
-        0,
-        this.hsla(
-          this.fastMod360(this.hueBase + 260 + layer * 5),
-          60,
-          15 + layer * 3,
-          layerAlpha,
-        ),
-      );
-      danceCenter.addColorStop(
-        0.6,
-        this.hsla(
-          this.fastMod360(this.hueBase + 250 + layer * 5),
-          70,
-          20 + layer * 2,
-          (0.5 - layer * 0.1) + trebleIntensity * 0.3,
-        ),
-      );
-      danceCenter.addColorStop(1, this.hsla(this.fastMod360(this.hueBase + 240 + layer * 5), 80, 25, 0));
-
-      ctx.fillStyle = danceCenter;
-      ctx.beginPath();
-      ctx.arc(0, 0, layerRadius, 0, FlowFieldRenderer.TWO_PI);
-      ctx.fill();
-    }
+    ctx.globalCompositeOperation = "source-over";
 
     ctx.restore();
   }
