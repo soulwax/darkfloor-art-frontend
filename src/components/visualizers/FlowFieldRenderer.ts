@@ -330,6 +330,7 @@ export class FlowFieldRenderer {
   private static readonly COS_TABLE = FlowFieldRenderer.initCosTable();
   private static readonly TWO_PI = Math.PI * 2;
   private static readonly INV_TWO_PI = 1 / (Math.PI * 2);
+  private static readonly SQRT3 = 1.7320508075688772;
 
   private static initSinTable(): Float32Array {
     const table = new Float32Array(this.SIN_TABLE_SIZE);
@@ -853,78 +854,91 @@ export class FlowFieldRenderer {
     trebleIntensity: number,
   ): void {
     const ctx = this.ctx;
-    const rayCount = this.rayCount + ((bassIntensity * this.rayCount) | 0);
-    const angleStep = FlowFieldRenderer.TWO_PI / rayCount;
+
+    // HYPER-OPTIMIZATION: Much cheaper rays (faster “buildup”, fewer allocations)
+    // - Dynamic ray count (LOD) to avoid 7x gradient-layering per ray
+    // - Replace offset+gradient loop with 2-pass glow/core stroke
+    // - Central glow drawn as a circle (not a full-canvas fillRect)
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const baseRayCount = this.rayCount;
+    const countScale = 0.65 + audioIntensity * 0.55 + bassIntensity * 0.55;
+    let rayCount = (baseRayCount * countScale) | 0;
+    if (rayCount < 24) rayCount = 24;
+    if (rayCount > 120) rayCount = 120;
+    const invRayCount = 1 / rayCount;
+    const angleStep = twoPi * invRayCount;
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
+    ctx.translate(this.centerX, this.centerY);
+    ctx.lineCap = "round";
 
-    
     const timeWave1 = this.time * 0.001;
     const timeWave2 = this.time * 0.01;
     const timeWave3 = this.time * 0.005;
+    const timeHue = this.time * 0.05;
     const minDimension = Math.min(this.width, this.height);
-    const rayWidth = 2 + trebleIntensity * 10;
+
+    const rayLengthBase = minDimension * (0.55 + audioIntensity * 0.55);
+    const rayWidth = 1.6 + trebleIntensity * 4.5;
+    const glowWidth = rayWidth * (2.1 + audioIntensity * 0.6);
+    const glowBlur = 10 + trebleIntensity * 22 + audioIntensity * 10;
+    const hueStep = 360 * invRayCount;
+
+    // Faster perceived buildup: higher baseline alpha even at low audio
+    const alphaBase = 0.22 + audioIntensity * 0.35;
+    const coreAlpha = 0.35 + audioIntensity * 0.45;
 
     for (let i = 0; i < rayCount; i++) {
-      
       const spiralAngle = timeWave1 + i * 0.1;
       const pulseAngle = timeWave2 + i * 0.2;
-      const angle = angleStep * i + timeWave3 + this.fastSin(spiralAngle) * 0.2;
-      const pulseEffect = 1 + this.fastSin(pulseAngle) * 0.15;
-      const rayLength = minDimension * (0.6 + audioIntensity * 0.4) * pulseEffect;
+      const angle =
+        angleStep * i + timeWave3 + this.fastSin(spiralAngle) * 0.18;
+      const pulseEffect = 1 + this.fastSin(pulseAngle) * 0.12;
+      const rayLength = rayLengthBase * pulseEffect;
 
-      const endX = this.centerX + this.fastCos(angle) * rayLength;
-      const endY = this.centerY + this.fastSin(angle) * rayLength;
+      const endX = this.fastCos(angle) * rayLength;
+      const endY = this.fastSin(angle) * rayLength;
 
-      
-      for (let offset = -3; offset <= 3; offset++) {
-        const hue = (this.hueBase + i * (360 / rayCount) + offset * 15 + this.time * 0.05) % 360;
-        const alpha =
-          (0.12 + audioIntensity * 0.18) * (1 - Math.abs(offset) * 0.25);
+      const hue = this.fastMod360(this.hueBase + i * hueStep + timeHue);
 
-        const gradient = ctx.createLinearGradient(
-          this.centerX,
-          this.centerY,
-          endX + offset * 4, 
-          endY + offset * 4,
-        );
+      // Glow pass
+      ctx.shadowBlur = glowBlur;
+      ctx.shadowColor = this.hsla(hue, 100, 55, alphaBase * 0.9);
+      ctx.strokeStyle = this.hsla(hue, 100, 55, alphaBase * 0.35);
+      ctx.lineWidth = glowWidth;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
 
-        
-        gradient.addColorStop(0, `hsla(${hue}, 100%, 75%, ${alpha})`);
-        gradient.addColorStop(0.3, `hsla(${hue + 20}, 95%, 65%, ${alpha * 0.8})`);
-        gradient.addColorStop(0.7, `hsla(${hue}, 85%, 55%, ${alpha * 0.5})`);
-        gradient.addColorStop(1, `hsla(${hue}, 75%, 45%, 0)`);
-
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = rayWidth;
-        ctx.beginPath();
-        ctx.moveTo(this.centerX, this.centerY);
-        ctx.lineTo(endX + offset * 4, endY + offset * 4);
-        ctx.stroke();
-      }
+      // Core pass
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = this.hsla(hue, 95, 72, coreAlpha);
+      ctx.lineWidth = rayWidth;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
     }
 
-    const glowGradient = ctx.createRadialGradient(
-      this.centerX,
-      this.centerY,
-      0,
-      this.centerX,
-      this.centerY,
-      100 + bassIntensity * 100,
-    );
+    // Central glow (circle, not full-canvas fill)
+    const glowRadius = 90 + bassIntensity * 110;
+    const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
     glowGradient.addColorStop(
       0,
-      `hsla(${this.hueBase}, 100%, 80%, ${0.4 + audioIntensity * 0.3})`,
+      this.hsla(this.hueBase, 100, 80, 0.35 + audioIntensity * 0.25),
     );
     glowGradient.addColorStop(
-      0.5,
-      `hsla(${this.hueBase}, 90%, 60%, ${0.2 + audioIntensity * 0.2})`,
+      0.55,
+      this.hsla(this.hueBase, 90, 60, 0.18 + audioIntensity * 0.15),
     );
-    glowGradient.addColorStop(1, `hsla(${this.hueBase}, 80%, 40%, 0)`);
+    glowGradient.addColorStop(1, this.hsla(this.hueBase, 80, 40, 0));
 
     ctx.fillStyle = glowGradient;
-    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.beginPath();
+    ctx.arc(0, 0, glowRadius, 0, twoPi);
+    ctx.fill();
 
     ctx.restore();
   }
@@ -2559,8 +2573,8 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
-    const sqrt3 = 1.7320508075688772; // Math.sqrt(3)
-    const hexHeight = hexSize * sqrt3;
+    const SQRT3 = 1.7320508075688772; // Math.sqrt(3)
+    const hexHeight = hexSize * SQRT3;
     const hexSize1_5 = hexSize * 1.5;
     const hexSize0_75 = hexSize * 0.75;
     const invHexHeight = 1 / hexHeight;
@@ -3843,8 +3857,6 @@ export class FlowFieldRenderer {
     const timeRotation = this.time * 0.001;
     const timeSymbolRotation = this.time * 0.003;
     const twoPi = FlowFieldRenderer.TWO_PI;
-    const sqrt3_2 = 0.8660254037844386; 
-
     symbols.forEach((symbol, i) => {
       const angle = symbol.rotation + timeRotation;
       
@@ -3866,6 +3878,7 @@ export class FlowFieldRenderer {
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
+      const sqrt3_2 = 0.8660254037844386; // sqrt(3)/2
       const sizeHalf = size * 0.5;
       const sizeSqrt3 = size * sqrt3_2;
       ctx.beginPath();
@@ -5326,10 +5339,10 @@ export class FlowFieldRenderer {
 
     
     const twoPi = FlowFieldRenderer.TWO_PI;
-    const sqrt3 = 1.7320508075688772; 
     const timePulse = this.time * 0.005;
     const centerAlpha = 0.7 + audioIntensity * 0.3;
     const ringAlpha = 0.6 + audioIntensity * 0.2;
+    const sqrt3 = 1.7320508075688772; // Math.sqrt(3)
     const inv6 = 1 / 6;
     const outerAngleStep = twoPi * inv6;
 
