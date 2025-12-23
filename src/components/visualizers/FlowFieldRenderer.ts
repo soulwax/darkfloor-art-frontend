@@ -4244,9 +4244,19 @@ export class FlowFieldRenderer {
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
 
+    // HYPER-OPTIMIZATION: Pre-calculate phoenix parameters
+    const timeWing = this.time * 0.005;
+    const timeTail = this.time * 0.01;
+    const timeHue = this.time * 0.5;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const halfPi = Math.PI * 0.5;
+    const pi04 = -Math.PI * 0.4;
+    const pi08 = Math.PI * 0.8;
+
     // Wings
     for (let side = -1; side <= 1; side += 2) {
-      const wingAngle = Math.sin(this.time * 0.005) * 0.3 * side;
+      // HYPER-OPTIMIZATION: Use fast trig for wing angle
+      const wingAngle = this.fastSin(timeWing) * 0.3 * side;
 
       ctx.save();
       ctx.scale(side, 1);
@@ -4254,22 +4264,23 @@ export class FlowFieldRenderer {
 
       // Wing feathers
       const featherCount = 8;
+      const invFeatherCount = 1 / featherCount;
       for (let i = 0; i < featherCount; i++) {
-        const featherProgress = i / featherCount;
-        const featherAngle = -Math.PI * 0.4 + featherProgress * Math.PI * 0.8;
+        const featherProgress = i * invFeatherCount;
+        const featherAngle = pi04 + featherProgress * pi08;
         const featherLength = wingSpan * (0.5 + featherProgress * 0.5);
-        const hue = ((this.hueBase + i * 15 + this.time * 0.5) % 60) + 0; // Red-orange-yellow
+        const hue = ((this.hueBase + i * 15 + timeHue) % 60) | 0; // Red-orange-yellow
 
         ctx.save();
         ctx.rotate(featherAngle);
 
+        const hue20 = hue + 20;
+        const hue40 = hue + 40;
+        const featherAlpha = 0.8 + audioIntensity * 0.2;
         const gradient = ctx.createLinearGradient(0, 0, featherLength, 0);
-        gradient.addColorStop(
-          0,
-          `hsla(${hue}, 90%, 60%, ${0.8 + audioIntensity * 0.2})`,
-        );
-        gradient.addColorStop(0.5, `hsla(${hue + 20}, 95%, 65%, 0.6)`);
-        gradient.addColorStop(1, `hsla(${hue + 40}, 100%, 70%, 0.2)`);
+        gradient.addColorStop(0, this.hsla(hue, 90, 60, featherAlpha));
+        gradient.addColorStop(0.5, this.hsla(hue20, 95, 65, 0.6));
+        gradient.addColorStop(1, this.hsla(hue40, 100, 70, 0.2));
 
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 15 - i * 1.5 + trebleIntensity * 5;
@@ -4282,14 +4293,22 @@ export class FlowFieldRenderer {
 
         // Flame particles
         if (i % 2 === 0) {
+          let rngSeed = ((i * 1103515245 + this.time * 1664525) & 0x7fffffff);
           for (let j = 0; j < 5; j++) {
+            rngSeed = (rngSeed * 1664525 + 1013904223) & 0x7fffffff;
+            const rng1 = rngSeed / 0x7fffffff;
+            rngSeed = (rngSeed * 1103515245 + 12345) & 0x7fffffff;
+            const rng2 = rngSeed / 0x7fffffff;
+            rngSeed = (rngSeed * 1664525 + 1013904223) & 0x7fffffff;
+            const rng3 = rngSeed / 0x7fffffff;
+            
             const particleX = featherLength * (0.5 + j * 0.1);
-            const particleY = (Math.random() - 0.5) * 20;
-            const particleSize = 2 + Math.random() * 4 + audioIntensity * 3;
+            const particleY = (rng1 - 0.5) * 20;
+            const particleSize = 2 + rng2 * 4 + audioIntensity * 3;
 
-            ctx.fillStyle = `hsla(${hue + 30}, 100%, 70%, ${0.6 + Math.random() * 0.4})`;
+            ctx.fillStyle = this.hsla(hue + 30, 100, 70, 0.6 + rng3 * 0.4);
             ctx.beginPath();
-            ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+            ctx.arc(particleX, particleY, particleSize, 0, twoPi);
             ctx.fill();
           }
         }
@@ -4301,23 +4320,25 @@ export class FlowFieldRenderer {
     }
 
     // Body
+    const bodyHue30 = this.fastMod360(this.hueBase + 30);
+    const bodyHue10 = this.fastMod360(this.hueBase + 10);
     const bodyGradient = ctx.createRadialGradient(0, 0, 20, 0, 0, 60);
-    bodyGradient.addColorStop(0, `hsla(${this.hueBase + 30}, 95%, 70%, 1)`);
-    bodyGradient.addColorStop(0.6, `hsla(${this.hueBase + 10}, 90%, 60%, 0.8)`);
-    bodyGradient.addColorStop(1, `hsla(${this.hueBase}, 85%, 50%, 0.4)`);
+    bodyGradient.addColorStop(0, this.hsla(bodyHue30, 95, 70, 1));
+    bodyGradient.addColorStop(0.6, this.hsla(bodyHue10, 90, 60, 0.8));
+    bodyGradient.addColorStop(1, this.hsla(this.hueBase, 85, 50, 0.4));
 
     ctx.fillStyle = bodyGradient;
     ctx.beginPath();
-    ctx.arc(0, 0, 40 + bassIntensity * 20, 0, Math.PI * 2);
+    ctx.arc(0, 0, 40 + bassIntensity * 20, 0, twoPi);
     ctx.fill();
 
     // Tail flames
     const tailCount = 12;
+    const invTailCount = 1 / tailCount;
+    const tailHalf = tailCount * 0.5;
     for (let i = 0; i < tailCount; i++) {
-      const tailAngle =
-        Math.PI / 2 +
-        (i - tailCount / 2) * 0.1 +
-        Math.sin(this.time * 0.01 + i) * 0.2;
+      // HYPER-OPTIMIZATION: Use fast trig for tail angle
+      const tailAngle = halfPi + (i - tailHalf) * 0.1 + this.fastSin(timeTail + i) * 0.2;
       const tailLength = 100 + i * 15 + bassIntensity * 50;
       const hue = (this.hueBase + i * 5) % 60;
 
@@ -4325,8 +4346,8 @@ export class FlowFieldRenderer {
       ctx.rotate(tailAngle);
 
       const tailGradient = ctx.createLinearGradient(0, 0, 0, tailLength);
-      tailGradient.addColorStop(0, `hsla(${hue + 20}, 95%, 65%, 0.8)`);
-      tailGradient.addColorStop(1, `hsla(${hue + 40}, 100%, 70%, 0)`);
+      tailGradient.addColorStop(0, this.hsla(hue + 20, 95, 65, 0.8));
+      tailGradient.addColorStop(1, this.hsla(hue + 40, 100, 70, 0));
 
       ctx.strokeStyle = tailGradient;
       ctx.lineWidth = 10 - i * 0.5;
@@ -4350,26 +4371,37 @@ export class FlowFieldRenderer {
   ): void {
     const ctx = this.ctx;
     const segments = 40;
+
+    // HYPER-OPTIMIZATION: Pre-calculate serpent parameters
     const amplitude = 100 + bassIntensity * 60;
+    const invSegments = 1 / segments;
+    const timePhase = this.time * 0.01;
+    const timeHue = this.time * 0.3;
+    const timeTongue = this.time * 0.02;
+    const twoPi = FlowFieldRenderer.TWO_PI;
+    const phaseMultiplier = 1.5;
+    const segmentAlpha = 0.7 + audioIntensity * 0.3;
 
     for (let i = 0; i < segments; i++) {
-      const progress = i / segments;
-      const phase = this.time * 0.01 - progress * Math.PI * 2;
+      const progress = i * invSegments;
+      const phase = timePhase - progress * twoPi;
+      const phase15 = phase * phaseMultiplier;
 
-      const x = this.centerX + Math.cos(phase) * (200 + progress * 100);
-      const y = this.centerY + Math.sin(phase * 1.5) * amplitude;
+      // HYPER-OPTIMIZATION: Use fast trig for serpent position
+      const x = this.centerX + this.fastCos(phase) * (200 + progress * 100);
+      const y = this.centerY + this.fastSin(phase15) * amplitude;
 
-      const nextProgress = (i + 1) / segments;
-      const nextPhase = this.time * 0.01 - nextProgress * Math.PI * 2;
-      const nextX =
-        this.centerX + Math.cos(nextPhase) * (200 + nextProgress * 100);
-      const nextY = this.centerY + Math.sin(nextPhase * 1.5) * amplitude;
+      const nextProgress = (i + 1) * invSegments;
+      const nextPhase = timePhase - nextProgress * twoPi;
+      const nextPhase15 = nextPhase * phaseMultiplier;
+      const nextX = this.centerX + this.fastCos(nextPhase) * (200 + nextProgress * 100);
+      const nextY = this.centerY + this.fastSin(nextPhase15) * amplitude;
 
       const size = 20 - progress * 15 + midIntensity * 10;
-      const hue = (this.hueBase + progress * 120 + this.time * 0.3) % 360;
+      const hue = this.fastMod360(this.hueBase + progress * 120 + timeHue);
 
       // Segment body
-      ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${0.7 + audioIntensity * 0.3})`;
+      ctx.strokeStyle = this.hsla(hue, 80, 60, segmentAlpha);
       ctx.lineWidth = size;
       ctx.lineCap = "round";
 
@@ -4380,9 +4412,9 @@ export class FlowFieldRenderer {
 
       // Scales
       if (i % 3 === 0) {
-        ctx.fillStyle = `hsla(${hue + 30}, 85%, 65%, 0.6)`;
+        ctx.fillStyle = this.hsla(this.fastMod360(hue + 30), 85, 65, 0.6);
         ctx.beginPath();
-        ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
+        ctx.arc(x, y, size * 0.4, 0, twoPi);
         ctx.fill();
       }
 
@@ -4390,36 +4422,27 @@ export class FlowFieldRenderer {
       if (i === segments - 1) {
         const headSize = size * 1.5;
 
-        ctx.fillStyle = `hsla(${hue}, 85%, 65%, 0.9)`;
+        ctx.fillStyle = this.hsla(hue, 85, 65, 0.9);
         ctx.beginPath();
-        ctx.arc(x, y, headSize, 0, Math.PI * 2);
+        ctx.arc(x, y, headSize, 0, twoPi);
         ctx.fill();
 
         // Eyes
         const eyeOffset = headSize * 0.4;
-        ctx.fillStyle = `hsla(${(hue + 180) % 360}, 90%, 70%, 0.9)`;
+        const eyeSize = headSize * 0.2;
+        const eyeY = y - eyeOffset * 0.5;
+        ctx.fillStyle = this.hsla(this.fastMod360(hue + 180), 90, 70, 0.9);
         ctx.beginPath();
-        ctx.arc(
-          x - eyeOffset,
-          y - eyeOffset * 0.5,
-          headSize * 0.2,
-          0,
-          Math.PI * 2,
-        );
-        ctx.arc(
-          x + eyeOffset,
-          y - eyeOffset * 0.5,
-          headSize * 0.2,
-          0,
-          Math.PI * 2,
-        );
+        ctx.arc(x - eyeOffset, eyeY, eyeSize, 0, twoPi);
+        ctx.arc(x + eyeOffset, eyeY, eyeSize, 0, twoPi);
         ctx.fill();
 
         // Forked tongue
         const tongueLength = headSize * 2;
-        const tongueAngle = Math.sin(this.time * 0.02) * 0.2;
+        // HYPER-OPTIMIZATION: Use fast trig for tongue angle
+        const tongueAngle = this.fastSin(timeTongue) * 0.2;
 
-        ctx.strokeStyle = `hsla(0, 90%, 60%, 0.8)`;
+        ctx.strokeStyle = this.hsla(0, 90, 60, 0.8);
         ctx.lineWidth = 2;
 
         ctx.save();
