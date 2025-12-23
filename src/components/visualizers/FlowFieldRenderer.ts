@@ -4851,57 +4851,64 @@ export class FlowFieldRenderer {
   ): void {
     const ctx = this.ctx;
     const cardCount = 7;
+
+    // HYPER-OPTIMIZATION: Pre-calculate tarot parameters
     const cardWidth = 80 + bassIntensity * 30;
     const cardHeight = cardWidth * 1.5;
     const spacing = (this.width - cardWidth * cardCount) / (cardCount + 1);
+    const timeHover = this.time * 0.005;
+    const timeRotation = this.time * 0.003;
+    const cardWidthHalf = cardWidth * 0.5;
+    const cardHeightHalf = cardHeight * 0.5;
+    const glowSize = cardWidth * 0.6;
+    const glowSize2 = glowSize * 2;
+    const glowSizeHalf = glowSize * 0.5;
+    const cardGlowAlpha = 0.4 + audioIntensity * 0.3;
 
     for (let i = 0; i < cardCount; i++) {
       const x = spacing + i * (cardWidth + spacing);
-      const y = this.centerY - cardHeight / 2;
-      const hover = Math.sin(this.time * 0.005 + i * 0.8) * 20;
-      const rotation = Math.sin(this.time * 0.003 + i) * 0.1;
-      const hue = (this.hueBase + i * 51) % 360; // Use prime number for varied colors
+      const y = this.centerY - cardHeightHalf;
+      // HYPER-OPTIMIZATION: Use fast trig for card animation
+      const hover = this.fastSin(timeHover + i * 0.8) * 20;
+      const rotation = this.fastSin(timeRotation + i) * 0.1;
+      const hue = this.fastMod360(this.hueBase + i * 51); // Use prime number for varied colors
 
       ctx.save();
-      ctx.translate(x + cardWidth / 2, y + cardHeight / 2 + hover);
+      ctx.translate(x + cardWidthHalf, y + cardHeightHalf + hover);
       ctx.rotate(rotation);
 
       // Card glow
-      const glowSize = cardWidth * 0.6;
       const gradient = ctx.createRadialGradient(
         0,
         0,
-        glowSize * 0.5,
+        glowSizeHalf,
         0,
         0,
         glowSize,
       );
-      gradient.addColorStop(
-        0,
-        `hsla(${hue}, 90%, 70%, ${0.4 + audioIntensity * 0.3})`,
-      );
-      gradient.addColorStop(1, `hsla(${hue}, 80%, 60%, 0)`);
+      gradient.addColorStop(0, this.hsla(hue, 90, 70, cardGlowAlpha));
+      gradient.addColorStop(1, this.hsla(hue, 80, 60, 0));
 
       ctx.fillStyle = gradient;
-      ctx.fillRect(-glowSize, -glowSize, glowSize * 2, glowSize * 2);
+      ctx.fillRect(-glowSize, -glowSize, glowSize2, glowSize2);
 
       // Card body
-      ctx.fillStyle = `hsla(${hue}, 30%, 20%, 0.9)`;
-      ctx.strokeStyle = `hsla(${hue}, 80%, 65%, 0.8)`;
+      ctx.fillStyle = this.hsla(hue, 30, 20, 0.9);
+      ctx.strokeStyle = this.hsla(hue, 80, 65, 0.8);
       ctx.lineWidth = 3;
       ctx.shadowBlur = 10;
-      ctx.shadowColor = `hsla(${hue}, 80%, 50%, 0.5)`;
+      ctx.shadowColor = this.hsla(hue, 80, 50, 0.5);
 
-      ctx.fillRect(-cardWidth / 2, -cardHeight / 2, cardWidth, cardHeight);
-      ctx.strokeRect(-cardWidth / 2, -cardHeight / 2, cardWidth, cardHeight);
+      ctx.fillRect(-cardWidthHalf, -cardHeightHalf, cardWidth, cardHeight);
+      ctx.strokeRect(-cardWidthHalf, -cardHeightHalf, cardWidth, cardHeight);
       ctx.shadowBlur = 0;
 
       // Card border decoration
-      ctx.strokeStyle = `hsla(${hue + 30}, 85%, 70%, 0.6)`;
+      ctx.strokeStyle = this.hsla(this.fastMod360(hue + 30), 85, 70, 0.6);
       ctx.lineWidth = 1;
       ctx.strokeRect(
-        -cardWidth / 2 + 5,
-        -cardHeight / 2 + 5,
+        -cardWidthHalf + 5,
+        -cardHeightHalf + 5,
         cardWidth - 10,
         cardHeight - 10,
       );
