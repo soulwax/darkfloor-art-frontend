@@ -1,9 +1,7 @@
 // File: scripts/populate-userhash.ts
 
-import { Pool } from "pg";
-import { readFileSync } from "fs";
-import path from "path";
 import dotenv from "dotenv";
+import { Pool } from "pg";
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
@@ -11,8 +9,7 @@ dotenv.config({ path: ".env.local" });
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL!,
   ssl: {
-    rejectUnauthorized: true,
-    ca: readFileSync(path.join(process.cwd(), "certs/ca.pem")).toString(),
+    rejectUnauthorized: false, // Accept self-signed certificates
   },
 });
 

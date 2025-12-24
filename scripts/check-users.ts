@@ -1,9 +1,9 @@
 // File: scripts/check-users.ts
 
-import { Pool } from "pg";
+import dotenv from "dotenv";
 import { readFileSync } from "fs";
 import path from "path";
-import dotenv from "dotenv";
+import { Pool } from "pg";
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
