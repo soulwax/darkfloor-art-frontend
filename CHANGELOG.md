@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.6.7] - 2025-12-24
+
+### Added
+
+#### WebGL Migration Planning
+
+- **ROADMAP.md**: Created comprehensive roadmap for migrating visualization system from Canvas2D to WebGL
+  - **Executive Summary**: Timeline, benefits, and architectural overview
+  - **7-Phase Implementation Plan**: Week-by-week breakdown (20-week timeline)
+    - Phase 0: Foundation & Research (Weeks 1-2)
+    - Phase 1: Core Infrastructure (Weeks 3-5)
+    - Phase 2: Pattern Migration (Weeks 6-12) - Converting 80+ patterns in batches
+    - Phase 3: Post-Processing Pipeline (Weeks 11-12)
+    - Phase 4: Transition System (Weeks 13-14)
+    - Phase 5: Integration & Testing (Weeks 15-16)
+    - Phase 6: Polish & Optimization (Weeks 17-18)
+    - Phase 7: Launch & Monitoring (Weeks 19-20)
+  - **Technical Architecture**: Proposed code structure with shader system
+  - **Risk Mitigation**: Comprehensive risk assessment and mitigation strategies
+  - **Success Metrics**: Performance targets and quality benchmarks
+  - **Expected Benefits**:
+    - +100-200% FPS improvement at 4K resolution
+    - -60% reduction in CPU usage
+    - -65% reduction in code size
+    - -50% reduction in mobile battery impact
+    - -75% reduction in pattern creation time
+  - **Pattern Conversion Guide**: Template and checklist for porting patterns to GLSL
+  - **Device Test Matrix**: Cross-platform testing requirements
+  - **Resources & References**: Learning materials and technical documentation
+
+### Technical Planning
+
+- **Migration Strategy**: Gradual, feature-flagged migration approach
+  - Parallel development with existing Canvas2D system
+  - Graceful fallback for unsupported devices
+  - Phased rollout (10% → 50% → 100% of users)
+- **Shader Architecture**: Multi-layer framebuffer system proposed
+  - Pattern registry with dynamic shader loading
+  - Audio texture pipeline for GPU-based audio reactivity
+  - Post-processing effects (blur, bloom, color grading, distortion)
+  - Advanced transition system between patterns
+- **Performance Budget**: Defined performance targets per platform
+  - Desktop: 60fps at 4K, <10% CPU usage
+  - Mobile: 30-60fps, <20% CPU usage, <50MB memory
+  - Initial bundle size increase: <100KB for WebGL infrastructure
+
+
 ## [0.6.6] - 2025-12-23
 
 ### Added

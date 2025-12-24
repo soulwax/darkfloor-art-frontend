@@ -1,6 +1,6 @@
 {
   "name": "darkfloor-art",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "A modern music streaming and discovery platform with intelligent recommendations, advanced audio features, and a beautiful user interface",
   "private": true,
   "type": "module",
