@@ -76,7 +76,7 @@ try {
   // Copy .env.local to standalone directory for packaged builds
   const envLocalSource = path.join(rootDir, ".env.local");
   const envLocalDest = path.join(standaloneDir, ".env.local");
-  
+
   if (fs.existsSync(envLocalSource)) {
     console.log("[Prepare] Copying .env.local...");
     fs.copyFileSync(envLocalSource, envLocalDest);
@@ -85,15 +85,33 @@ try {
     console.warn("[Prepare] ⚠️  Warning: .env.local not found - packaged app will use system environment variables");
   }
 
+  // CRITICAL: Ensure ELECTRON_BUILD=true is set in packaged apps
+  // This prevents NextAuth from using secure cookies (__Secure-*, __Host-*)
+  // which don't work on localhost HTTP in Electron
+  console.log("[Prepare] Ensuring ELECTRON_BUILD=true in .env.local...");
+  if (fs.existsSync(envLocalDest)) {
+    const envContent = fs.readFileSync(envLocalDest, "utf8");
+    if (!envContent.includes("ELECTRON_BUILD=true")) {
+      fs.appendFileSync(envLocalDest, "\n# CRITICAL: Required for NextAuth cookie compatibility in Electron\nELECTRON_BUILD=true\n");
+      console.log("[Prepare] ✓ Added ELECTRON_BUILD=true");
+    } else {
+      console.log("[Prepare] ✓ ELECTRON_BUILD already present");
+    }
+  } else {
+    fs.writeFileSync(envLocalDest, "# CRITICAL: Required for NextAuth cookie compatibility in Electron\nELECTRON_BUILD=true\n");
+    console.log("[Prepare] ✓ Created .env.local with ELECTRON_BUILD=true");
+  }
+
   // Add dev tools flag if requested (append to .env.local in standalone)
   if (process.env.ELECTRON_DEV_TOOLS === "true") {
     console.log("[Prepare] Adding dev tools flag to .env.local...");
-    if (fs.existsSync(envLocalDest)) {
-      fs.appendFileSync(envLocalDest, "\nELECTRON_DEV_TOOLS=true\n");
+    const envContent = fs.readFileSync(envLocalDest, "utf8");
+    if (!envContent.includes("ELECTRON_DEV_TOOLS=true")) {
+      fs.appendFileSync(envLocalDest, "ELECTRON_DEV_TOOLS=true\n");
+      console.log("[Prepare] ✓ Added ELECTRON_DEV_TOOLS=true");
     } else {
-      fs.writeFileSync(envLocalDest, "ELECTRON_DEV_TOOLS=true\n");
+      console.log("[Prepare] ✓ ELECTRON_DEV_TOOLS already present");
     }
-    console.log("[Prepare] ✓ Dev tools configuration saved");
   }
 
   console.log("\n[Prepare] Package preparation complete!\n");

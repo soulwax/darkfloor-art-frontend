@@ -20,6 +20,10 @@ export const env = createEnv({
       .default("development"),
     STREAMING_KEY: z.string(),
     SONGBIRD_API_KEY: z.string().optional(),
+    ELECTRON_BUILD: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
   },
   client: {
     NEXT_PUBLIC_API_URL: z.string().url(),
@@ -43,6 +47,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NEXTAUTH_URL: process.env.NEXT_PUBLIC_NEXTAUTH_URL,
     STREAMING_KEY: process.env.STREAMING_KEY,
     SONGBIRD_API_KEY: process.env.SONGBIRD_API_KEY,
+    ELECTRON_BUILD: process.env.ELECTRON_BUILD,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,
