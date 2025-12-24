@@ -6,6 +6,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { type ReactNode } from "react";
 
+import { DynamicTitle } from "@/components/DynamicTitle";
 import { ElectronStorageInit } from "@/components/ElectronStorageInit";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import HamburgerMenu from "@/components/HamburgerMenu";
@@ -21,7 +22,6 @@ import { MenuProvider } from "@/contexts/MenuContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { TRPCReactProvider } from "@/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
-import { title } from "process";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -31,14 +31,7 @@ const geist = Geist({
 const baseUrl = getBaseUrl();
 
 export const metadata: Metadata = {
-  // title conditional, if electron, use "Starchild"
-  const title = 
-  if (process.env.ELECTRON_BUILD) {
-    title: "Starchild",
-  } else {
-    title: "darkfloor.art";
-  }
-  ,   
+  title: "darkfloor.art",
   description:
     "Modern music streaming and discovery platform with smart recommendations",
   applicationName: "darkfloor.art",
@@ -97,6 +90,8 @@ export default function RootLayout({
             <TRPCReactProvider>
               <ToastProvider>
                 <AudioPlayerProvider>
+                  {/* Dynamic window title based on playback state */}
+                  <DynamicTitle />
                   <MenuProvider>
                     {/* UI elements that can be hidden on desktop */}
                     <UIWrapper>
