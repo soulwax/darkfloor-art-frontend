@@ -21,10 +21,14 @@ export function FlowFieldBackground({
   const animationFrameRef = useRef<number | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   // Initialize Web Audio API
   useEffect(() => {
     if (!audioElement) return;
+
+    // Prevent duplicate source node creation (React Strict Mode double-invokes effects)
+    if (sourceNodeRef.current) return;
 
     const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
@@ -40,11 +44,21 @@ export function FlowFieldBackground({
 
     audioContextRef.current = audioContext;
     analyserRef.current = analyser;
+    sourceNodeRef.current = source;
 
     return () => {
-      source.disconnect();
-      analyser.disconnect();
-      void audioContext.close();
+      if (sourceNodeRef.current) {
+        sourceNodeRef.current.disconnect();
+        sourceNodeRef.current = null;
+      }
+      if (analyserRef.current) {
+        analyserRef.current.disconnect();
+        analyserRef.current = null;
+      }
+      if (audioContextRef.current) {
+        void audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
     };
   }, [audioElement]);
 
