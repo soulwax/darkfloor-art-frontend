@@ -66,6 +66,7 @@
     "start:next": "next start --port 3412",
     "typecheck": "tsc --noEmit",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3412 && electron .\"",
+    "electron:dev:win": "concurrently \"npm run dev\" \"wait-on http://localhost:3412 && electron .\"",
     "electron:prod": "node scripts/load-env-build.js \"cross-env ELECTRON_BUILD=true ELECTRON_PROD=true next build && npm run electron:prepare && electron .\"",
     "electron:prod:win": "npm run electron:build:win && \".\\dist\\darkfloor Setup 0.6.7.exe\"",
     "electron:prepare": "node scripts/load-env-build.js \"node electron/prepare-package.js\"",
