@@ -1,6 +1,6 @@
 {
   "name": "songbird-player",
-  "version": "0.7.4",
+  "version": "0.7.6",
   "description": "A modern music streaming and discovery platform with intelligent recommendations, advanced audio features, and a beautiful user interface",
   "private": true,
   "type": "module",
@@ -46,6 +46,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "migrate:neon": "npx tsx scripts/migrate-to-neon.ts",
     "predev": "npm run generate:ssl",
     "dev": "cross-env NODE_ENV=development node scripts/server.js",
     "dev:next": "next dev --turbo --port 3222",

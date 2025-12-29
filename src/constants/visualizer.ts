@@ -2,6 +2,7 @@
 
 export const VISUALIZER_TYPES = [
   "flowfield",
+  "hydrogen-electron-orbitals",
 ] as const;
 
 export type VisualizerType = (typeof VISUALIZER_TYPES)[number];

@@ -5,6 +5,203 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.6] - 2025-12-30
+
+### Added
+
+#### Database Migration to NEON Postgres
+
+- **NEON Postgres Migration Script**: Comprehensive database migration tool for transferring data to NEON Postgres
+  - Full data migration from source database to NEON Postgres
+  - Automatic table discovery with dependency-aware ordering (respects foreign keys)
+  - Batch processing (1000 rows per batch) for optimal performance
+  - Progress tracking with colored console output
+  - Data verification after migration (row count comparison)
+  - Automatic sequence reset for auto-increment columns
+  - JSONB column handling with proper serialization
+  - Error handling for invalid JSON data (skips problematic rows)
+  - Schema validation before migration (ensures target schema exists)
+  - Table existence checks before copying
+  - Safe re-run capability (uses `ON CONFLICT DO NOTHING` to prevent duplicates)
+  - Location: `scripts/migrate-to-neon.ts` (477 lines)
+
+- **Migration Documentation**: Comprehensive migration guide with troubleshooting
+  - Step-by-step migration instructions
+  - Prerequisites and setup requirements
+  - Alternative migration methods (pg_dump/pg_restore)
+  - Post-migration verification steps
+  - Troubleshooting guide for common issues
+  - SSL certificate configuration
+  - Connection timeout handling
+  - Location: `scripts/MIGRATION_README.md`
+
+- **NPM Migration Script**: Added `migrate:neon` command to package.json
+  - Easy-to-use command: `npm run migrate:neon`
+  - Uses `npx tsx` for TypeScript execution (no build required)
+  - Supports environment variable configuration
+  - Location: `package.json:scripts`
+
+### Changed
+
+#### Database Migration Infrastructure
+
+- **NEON Postgres Compatibility**: Enhanced database migration for NEON Postgres compatibility
+  - Fixed trigger disabling (NEON doesn't allow disabling system triggers)
+  - Changed from `DISABLE TRIGGER ALL` to `DISABLE TRIGGER USER` (user-defined triggers only)
+  - Graceful error handling for trigger operations
+  - ES module compatibility fixes (`__dirname` replacement with `import.meta.url`)
+  - JSONB column type detection and proper serialization
+  - Enhanced error messages with context
+
+- **Migration Safety Features**:
+  - Schema validation before starting migration
+  - Table count verification (warns if target has fewer tables)
+  - Row-by-row error handling (continues on individual row failures)
+  - Transaction-based batch processing for data integrity
+  - Automatic conflict resolution (prevents duplicate inserts)
+
+### Technical Details
+
+**Migration Script Features:**
+
+- **Table Discovery**: Automatically discovers all tables from source database
+- **Dependency Ordering**: Uses topological sort to determine correct migration order based on foreign key relationships
+- **Batch Processing**: Processes data in batches of 1000 rows for optimal performance
+- **Progress Tracking**: Real-time progress with colored output showing:
+  - Table being migrated
+  - Row counts
+  - Success/failure status
+  - Total progress (X/17 tables)
+- **Data Verification**: After migration, verifies row counts match between source and target
+- **Error Recovery**: Individual row failures don't stop the entire migration
+- **JSONB Handling**: Properly serializes JavaScript objects to JSON strings for JSONB columns
+- **Sequence Management**: Automatically resets sequences to prevent ID conflicts
+
+**NEON-Specific Adaptations:**
+
+- **System Triggers**: NEON Postgres doesn't allow disabling system triggers (referential integrity constraints)
+  - Solution: Only disable user-defined triggers, let PostgreSQL handle constraints naturally
+  - Migration order ensures foreign keys are respected
+- **SSL Configuration**: Automatic SSL configuration for NEON connections
+  - Detects NEON connection strings
+  - Uses lenient SSL (rejectUnauthorized: false) for NEON
+  - Supports custom CA certificates if needed
+
+**Migration Process:**
+
+1. **Pre-Migration Checks**:
+   - Validates source and target database connections
+   - Verifies schema exists on target database
+   - Discovers all tables and counts rows
+   - Shows migration summary before starting
+
+2. **Migration Execution**:
+   - Migrates tables in dependency order (parents before children)
+   - Processes data in batches for performance
+   - Handles JSONB columns with proper serialization
+   - Skips rows with invalid JSON (logs warning, continues)
+   - Resets sequences after each table
+
+3. **Post-Migration Verification**:
+   - Compares row counts between source and target
+   - Reports any mismatches
+   - Provides success confirmation
+
+**Usage Example:**
+
+```bash
+# Set target database URL
+export TARGET_DATABASE_URL="postgresql://user:pass@neon-host/db?sslmode=require"
+
+# Run migration
+npm run migrate:neon
+```
+
+**Files Modified:**
+
+- Added: `scripts/migrate-to-neon.ts` (migration script, 477 lines)
+- Added: `scripts/MIGRATION_README.md` (migration documentation)
+- Modified: `package.json` (added `migrate:neon` script, version bump to 0.7.6)
+
+**Migration Safety:**
+
+- Uses `ON CONFLICT DO NOTHING` to prevent duplicate rows
+- Safe to re-run if migration is interrupted
+- Already migrated tables are skipped automatically
+- Transaction-based batching ensures data integrity
+
+## [0.7.5] - 2025-12-30
+
+### Added
+
+#### Hydrogen Electron Orbitals Visualizer
+
+- **New Visualizer Type**: Added "hydrogen-electron-orbitals" visualizer that visualizes hydrogen atom energy levels
+  - Cycles through energy levels n=1 to n=6 automatically
+  - Displays energy level label with quantum number and energy value (E = -13.6 eV / n²)
+  - Shows appropriate orbital shapes for each energy level:
+    - **n=1**: 1s orbital (spherical probability cloud)
+    - **n=2**: 2s and 2p orbitals (spherical and dumbbell shapes along x, y, z axes)
+    - **n=3**: 3s, 3p, and 3d orbitals (including cloverleaf patterns for d orbitals)
+    - **n=4-6**: Higher energy level shells with multiple orbital types
+  - Audio-reactive visualization:
+    - Electron movement speed increases with audio intensity
+    - Orbital pulsing responds to bass, mid, and treble frequencies
+    - Visual intensity scales with overall audio amplitude
+    - Energy level transitions speed up with audio activity
+  - Animated electrons orbiting the nucleus with 3D depth effect
+  - Pulsing nucleus visualization with radial gradients
+  - Performance optimized with quality scaling based on screen size
+  - Location: `src/components/visualizers/ChemicalOrbitalsRenderer.ts`
+
+### Changed
+
+#### Audio Visualizer System
+
+- **Multi-Renderer Support**: Enhanced AudioVisualizer to support multiple renderer types
+  - Added ChemicalOrbitalsRenderer integration alongside existing KaleidoscopeRenderer
+  - Renderer selection based on visualizer type
+  - Both renderers initialized and resized appropriately
+  - Location: `src/components/AudioVisualizer.tsx:15, 283-310, 532-543`
+
+- **Visualizer Type Registry**: Added new visualizer type to constants
+  - Added "hydrogen-electron-orbitals" to VISUALIZER_TYPES array
+  - Type-safe visualizer type definitions
+  - Location: `src/constants/visualizer.ts:5`
+
+### Technical Details
+
+**Hydrogen Atom Energy Levels:**
+
+The visualizer implements the Bohr model energy formula: E_n = -13.6 eV / n²
+
+- Each energy level (n) has specific orbital types:
+  - n=1: 1s (1 orbital)
+  - n=2: 2s, 2p (4 orbitals total: 1s + 3p)
+  - n=3: 3s, 3p, 3d (9 orbitals total: 1s + 3p + 5d)
+  - Higher levels follow the same pattern
+
+**Orbital Visualization:**
+
+- **s orbitals**: Spherical probability clouds with radial gradients
+- **p orbitals**: Dumbbell shapes along coordinate axes with lobe visualization
+- **d orbitals**: Cloverleaf patterns with four-lobe structures
+- All orbitals pulse and respond to audio frequencies
+
+**Performance Optimizations:**
+
+- Quality scaling based on screen area (reduces rendering load on large displays)
+- Electron count scales with quality setting (50 × qualityScale)
+- Pre-calculated constants (TWO_PI, INV_255, INV_360) for performance
+- Efficient frequency band calculations for audio reactivity
+
+**Files Modified:**
+
+- Added: `src/components/visualizers/ChemicalOrbitalsRenderer.ts` (new renderer class, 548 lines)
+- Modified: `src/components/AudioVisualizer.tsx` (multi-renderer support)
+- Modified: `src/constants/visualizer.ts` (added new visualizer type)
+- Modified: `package.json` (version bump to 0.7.5)
+
 ## [0.7.4] - 2025-12-29
 
 ### Changed
