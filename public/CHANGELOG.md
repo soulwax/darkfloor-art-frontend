@@ -5,21 +5,124 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.9] - 2025-12-29
+
+### Fixed
+
+#### Audio Context Stability
+
+- **Critical Audio Context Error**: Resolved `InvalidStateError: Failed to execute 'createMediaElementSource'`
+  - Fixed conflict where both equalizer and visualizer were creating separate MediaElementSource nodes
+  - Browser limitation: Only ONE MediaElementSource allowed per HTMLMediaElement
+  - Implemented shared audio graph architecture with single source node
+  - Locations:
+    - `src/hooks/useEqualizer.ts:51,201-212,390-391` - Added analyser node to equalizer chain
+    - `src/components/FlowFieldBackground.tsx:8-13,15-23` - Simplified to use shared analyser
+    - `src/components/PersistentPlayer.tsx:293-300` - Wired shared analyser between components
+
+### Technical Details
+
+**Previous Architecture (Broken):**
+
+```
+Audio Element → useEqualizer creates source → filters → destination
+Audio Element → FlowFieldBackground creates source → analyser → destination
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                ERROR: Can't create 2nd source from same element!
+```
+
+**New Architecture (Fixed):**
+
+```
+Audio Element → useEqualizer creates ONE source → filters → analyser → destination
+                                                              ↑
+                                                 FlowFieldBackground uses this
+```
+
+**Audio Chain Flow:**
+
+- Single `MediaElementAudioSourceNode` created in `useEqualizer`
+- Connected through 9 equalizer filter nodes
+- Flows to `AnalyserNode` (shared with visualizer)
+- Finally connects to `AudioContext.destination` (speakers)
+- When equalizer disabled: source connects directly to analyser (bypassing filters)
+
+**Benefits:**
+
+- Eliminates dual source node creation errors
+- Maintains equalizer functionality (10-band EQ, presets)
+- Preserves visualizer audio reactivity (flow field patterns)
+- Cleaner architecture with single source of truth
+- Proper resource cleanup on unmount
+
 ## [0.7.8] - 2025-12-29
 
 ### Fixed
 
-#### Critical Audio Playback Failure
+#### Audio Player Controls
 
-- **Audio Context Lifecycle Bug**: Fixed critical issue where audio playback was completely broken (currentTime stayed at 0:00, no sound)
-  - Root cause: When visualizer components unmounted, they released the Web Audio connection via `releaseAudioConnection()`
-  - The connection was deleted from WeakMap and AudioContext was closed, BUT the audio element remained connected to the now-closed MediaElementSourceNode
-  - Once an HTMLAudioElement is connected to Web Audio, it can ONLY play through that graph - "normal" playback won't work
-  - When user pressed play, the code couldn't find the connection (not in WeakMap) and tried "normal playback" which failed
-  - **Solution**: Modified `releaseAudioConnection()` to keep connections alive when audio source is loaded
-  - Connections are now only cleaned up when refCount reaches 0 AND no audio source is present
-  - This prevents the audio element from being left in a broken state when visualizer is toggled
-  - Location: `src/utils/audioContextManager.ts:112-149`
+- **Pause Button Reliability**: Enhanced pause functionality with proper error handling
+  - Added audio element initialization check before pausing
+  - Implemented try-catch error handling to prevent pause failures
+  - Added logging to help diagnose playback issues
+  - Ensures isPlaying state always syncs correctly with audio element
+  - Location: `src/hooks/useAudioPlayer.ts:551-567`
+
+- **Queue Clearing on Track End**: Fixed queue not clearing when single song finishes playing
+  - When a track ends with no more tracks in queue, the queue is now properly cleared
+  - Prevents stale track from remaining in queue after playback completes
+  - Added logging to confirm queue clearing behavior
+  - Location: `src/hooks/useAudioPlayer.ts:156-165`
+
+### Technical Details
+
+**Pause Function Enhancement:**
+
+The pause function now includes comprehensive error handling:
+
+```typescript
+const pause = useCallback(() => {
+  if (!audioRef.current) {
+    console.warn("[useAudioPlayer] Cannot pause: audio element not initialized");
+    setIsPlaying(false);
+    return;
+  }
+
+  try {
+    audioRef.current.pause();
+    setIsPlaying(false);
+  } catch (error) {
+    console.error("[useAudioPlayer] Error pausing audio:", error);
+    setIsPlaying(false);
+  }
+}, []);
+```
+
+**Queue Clearing Logic:**
+
+When `handleTrackEnd()` is called with no remaining tracks in queue:
+
+```typescript
+} else {
+  // No more tracks in queue, playback ends
+  onTrackEnd?.(currentTrack);
+  // Clear the queue since playback is complete
+  setQueue([]);
+  setIsPlaying(false);
+  console.log("[useAudioPlayer] 🏁 Playback ended, queue cleared");
+}
+```
+
+**Benefits:**
+
+- More reliable pause/play toggling
+- Cleaner queue state management
+- Better user experience when playing single tracks
+- Improved debugging with enhanced logging
+
+**Files Modified:**
+
+- Modified: `src/hooks/useAudioPlayer.ts` (pause function + queue clearing logic)
 
 ## [0.7.7] - 2025-12-30
 
@@ -129,7 +232,7 @@ This release focuses on **critical stability improvements** that eliminate error
 
 These fixes address fundamental stability issues that were causing user-facing errors and requiring page reloads.
 
-## [0.7.6] - 2025-12-30
+## [0.7.6] - 2025-12-29
 
 ### Added
 
@@ -254,7 +357,7 @@ npm run migrate:neon
 - Already migrated tables are skipped automatically
 - Transaction-based batching ensures data integrity
 
-## [0.7.5] - 2025-12-30
+## [0.7.5] - 2025-12-29
 
 ### Added
 

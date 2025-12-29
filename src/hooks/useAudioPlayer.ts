@@ -49,6 +49,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const retryCountRef = useRef(0);
   const maxRetries = 3;
   const failedTracksRef = useRef<Set<number>>(new Set());
+  const isInitialMountRef = useRef(true); // Track if this is the first render
 
   // Derived state: currentTrack is always queue[0]
   const currentTrack = queue[0] ?? null;
@@ -108,13 +109,16 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, [volume, playbackRate]);
 
   // Initialize audio source for restored track (from previous session)
+  // DO NOT auto-play - only load the source
   useEffect(() => {
     if (audioRef.current && currentTrack && !audioRef.current.src) {
       // Only initialize if there's no source already set
       // This happens when state is restored from localStorage
+      console.log("[useAudioPlayer] 🔄 Restoring audio source from localStorage (no autoplay)");
       const streamUrl = getStreamUrlById(currentTrack.id.toString());
       audioRef.current.src = streamUrl;
       audioRef.current.load();
+      // DO NOT call play() here - browser autoplay policy requires user gesture
     }
   }, [currentTrack]);
 
@@ -225,7 +229,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
     const togglePlayPause = () => {
       if (audioRef.current) {
-        if (isPlaying) {
+        // Use actual audio element state for media session controls too
+        const isActuallyPlaying = !audioRef.current.paused;
+        if (isActuallyPlaying) {
           audioRef.current.pause();
         } else {
           audioRef.current.play().catch((error) => {
@@ -692,8 +698,22 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, []);
 
   const togglePlay = useCallback(async () => {
-    if (isPlaying) pause();
-    else await play();
+    // Use actual audio element state as source of truth to prevent state sync issues
+    // This ensures pause button works even if React state is out of sync
+    const isActuallyPlaying = audioRef.current && !audioRef.current.paused;
+
+    console.log("[useAudioPlayer] togglePlay called", {
+      reactState_isPlaying: isPlaying,
+      audioElement_paused: audioRef.current?.paused,
+      isActuallyPlaying,
+      willCall: isActuallyPlaying ? "pause()" : "play()",
+    });
+
+    if (isActuallyPlaying) {
+      pause();
+    } else {
+      await play();
+    }
   }, [isPlaying, play, pause]);
 
   const seek = useCallback((time: number) => {
@@ -1046,6 +1066,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   // NEW: Auto-load track when queue[0] changes
   useEffect(() => {
+    // Skip auto-play on initial mount (when restoring from localStorage)
+    // This prevents "NotAllowedError" from browser autoplay policy
+    // User must explicitly click play or select a song
+    if (isInitialMountRef.current) {
+      console.log("[useAudioPlayer] 🚫 Skipping auto-play on initial mount (browser autoplay policy)");
+      isInitialMountRef.current = false;
+      return;
+    }
+
     if (currentTrack && audioRef.current) {
       const streamUrl = getStreamUrlById(currentTrack.id.toString());
       // Only load if the track is different from what's currently loaded
@@ -1055,7 +1084,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           currentSrc: audioRef.current.src,
         });
         loadTrack(currentTrack, streamUrl);
-        // Auto-play when queue changes - but wait a bit for source to be set and connection chain to be ready
+        // Auto-play when user explicitly selects a song
+        // Wait a bit for source to be set and connection chain to be ready
         setTimeout(() => {
           play().catch((error) => {
           // Ignore abort errors - these are normal when switching tracks quickly
@@ -1073,15 +1103,27 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           console.error("Playback failed:", error);
           });
         }, 150); // Small delay to ensure source is set and connection chain is ready
-      } else if (!isPlaying && audioRef.current.paused) {
-        // If track is already loaded but paused, try to play it
-        console.log(`[useAudioPlayer] ▶️ Track ${currentTrack?.title} already loaded, attempting to play.`);
-        play().catch((error) => {
-          console.error("[useAudioPlayer] Playback failed on already loaded track:", error);
-        });
       }
+      // Don't auto-play if track is already loaded - user might have paused it intentionally
+      // Auto-play only happens when loading a NEW track (handled above)
     }
-  }, [currentTrack, loadTrack, play, isPlaying]); // Added isPlaying to dependencies
+  }, [currentTrack, loadTrack, play]); // Don't include isPlaying - we don't want to trigger on pause/play state changes
+
+  // Sync React state with actual audio element state (polling fallback)
+  // This ensures UI stays in sync even if events are missed
+  useEffect(() => {
+    const syncInterval = setInterval(() => {
+      if (audioRef.current) {
+        const actuallyPlaying = !audioRef.current.paused;
+        if (actuallyPlaying !== isPlaying) {
+          console.log("[useAudioPlayer] 🔄 Syncing state: audio is", actuallyPlaying ? "playing" : "paused", "but state says", isPlaying);
+          setIsPlaying(actuallyPlaying);
+        }
+      }
+    }, 500); // Check every 500ms
+
+    return () => clearInterval(syncInterval);
+  }, [isPlaying]);
 
   // Cleanup retry timeout on unmount
   useEffect(() => {

@@ -7,18 +7,16 @@ import {
   getOrCreateAudioConnection,
   releaseAudioConnection,
 } from "@/utils/audioContextManager";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
 
 interface FlowFieldBackgroundProps {
   audioElement: HTMLAudioElement | null;
-  isPlaying: boolean;
   onRendererReady?: (renderer: FlowFieldRenderer | null) => void;
 }
 
 export function FlowFieldBackground({
   audioElement,
-  isPlaying,
   onRendererReady,
 }: FlowFieldBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +26,35 @@ export function FlowFieldBackground({
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const connectedAudioElementRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Track play/pause state via events
+  useEffect(() => {
+    if (!audioElement) {
+      setIsPlaying(false);
+      return;
+    }
+
+    const handlePlay = () => {
+      console.log("[FlowFieldBackground] Audio play event");
+      setIsPlaying(true);
+    };
+    const handlePause = () => {
+      console.log("[FlowFieldBackground] Audio pause event");
+      setIsPlaying(false);
+    };
+
+    // Set initial state
+    setIsPlaying(!audioElement.paused);
+
+    audioElement.addEventListener("play", handlePlay);
+    audioElement.addEventListener("pause", handlePause);
+
+    return () => {
+      audioElement.removeEventListener("play", handlePlay);
+      audioElement.removeEventListener("pause", handlePause);
+    };
+  }, [audioElement]);
 
   // Initialize Web Audio API
   useEffect(() => {
@@ -121,12 +148,22 @@ export function FlowFieldBackground({
 
   // Animation loop
   useEffect(() => {
+    console.log("[FlowFieldBackground] Animation loop check", {
+      isPlaying,
+      hasAnalyser: !!analyserRef.current,
+      hasRenderer: !!rendererRef.current,
+    });
+
     if (!isPlaying || !analyserRef.current || !rendererRef.current) {
       if (animationFrameRef.current) {
+        console.log("[FlowFieldBackground] Stopping animation loop");
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
       return;
     }
+
+    console.log("[FlowFieldBackground] Starting animation loop");
 
     const analyser = analyserRef.current;
     const renderer = rendererRef.current;
@@ -148,9 +185,10 @@ export function FlowFieldBackground({
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying]); // Re-run when play/pause state changes
 
   return (
     <canvas

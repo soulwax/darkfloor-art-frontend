@@ -292,9 +292,7 @@ export default function PersistentPlayer() {
       {/* Fullscreen Flow Field Background */}
       {player.currentTrack && visualizerEnabled && (
         <FlowFieldBackground
-          analyser={equalizer.analyser}
-          audioContext={equalizer.audioContext}
-          isPlaying={player.isPlaying}
+          audioElement={player.audioElement}
           onRendererReady={setRenderer}
         />
       )}
