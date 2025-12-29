@@ -7,6 +7,7 @@ import type { Track, PlaylistWithTracks } from "@/types";
 import { hapticLight, hapticSuccess } from "@/utils/haptics";
 import { getCoverImage } from "@/utils/images";
 import { formatDuration } from "@/utils/time";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -28,10 +29,12 @@ export default function EnhancedTrackCard({
   const utils = api.useUtils();
   const { showToast } = useToast();
   const { share, isSupported: isShareSupported } = useWebShare();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   const { data: favoriteData } = api.music.isFavorite.useQuery(
     { trackId: track.id },
-    { enabled: showActions },
+    { enabled: showActions && isAuthenticated },
   );
 
   const addFavorite = api.music.addFavorite.useMutation({
@@ -57,7 +60,7 @@ export default function EnhancedTrackCard({
   });
 
   const { data: playlists } = api.music.getPlaylists.useQuery(undefined, {
-    enabled: showMenu && showActions,
+    enabled: showMenu && showActions && isAuthenticated,
   });
 
   const addToPlaylist = api.music.addToPlaylist.useMutation({

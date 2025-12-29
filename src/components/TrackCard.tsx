@@ -9,6 +9,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { springPresets } from "@/utils/spring-animations";
 import { Heart, ListPlus, MoreVertical } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { api } from "@/trpc/react";
 import { useToast } from "@/contexts/ToastContext";
@@ -31,11 +32,13 @@ export default function TrackCard({
   const coverImage = getCoverImage(track);
   const { showToast } = useToast();
   const utils = api.useUtils();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   // Favorite queries and mutations
   const { data: favoriteData } = api.music.isFavorite.useQuery(
     { trackId: track.id },
-    { enabled: showActions },
+    { enabled: showActions && isAuthenticated },
   );
 
   const addFavorite = api.music.addFavorite.useMutation({
@@ -61,7 +64,7 @@ export default function TrackCard({
   });
 
   const { data: playlists } = api.music.getPlaylists.useQuery(undefined, {
-    enabled: showMenu && showActions,
+    enabled: showMenu && showActions && isAuthenticated,
   });
 
   const addToPlaylist = api.music.addToPlaylist.useMutation({

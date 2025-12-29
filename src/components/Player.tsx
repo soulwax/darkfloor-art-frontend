@@ -9,6 +9,7 @@ import { api } from "@/trpc/react";
 import type { Track } from "@/types";
 import { hapticLight, hapticMedium, hapticSuccess } from "@/utils/haptics";
 import { formatTime } from "@/utils/time";
+import { useSession } from "next-auth/react";
 import { Heart, Layers, ListPlus, Maximize2, Minimize2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
@@ -80,11 +81,13 @@ export default function MaturePlayer({
   const { hideUI, setHideUI } = useGlobalPlayer();
 
   const utils = api.useUtils();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
 
   // Favorite queries and mutations
   const { data: favoriteData } = api.music.isFavorite.useQuery(
     { trackId: currentTrack?.id ?? 0 },
-    { enabled: !!currentTrack },
+    { enabled: !!currentTrack && isAuthenticated },
   );
 
   const addFavorite = api.music.addFavorite.useMutation({
@@ -107,7 +110,9 @@ export default function MaturePlayer({
 
   // Playlist queries and mutations
   const { data: playlists, refetch: refetchPlaylists } =
-    api.music.getPlaylists.useQuery();
+    api.music.getPlaylists.useQuery(undefined, {
+      enabled: isAuthenticated,
+    });
 
   const addToPlaylist = api.music.addToPlaylist.useMutation({
     onSuccess: () => {

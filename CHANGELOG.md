@@ -5,6 +5,114 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.7] - 2025-12-30
+
+### Fixed
+
+#### Critical Audio Context Stability Issue
+
+- **Visualizer Toggle Error Resolution**: Fixed critical `InvalidStateError` when toggling visualizer on/off
+  - Root cause: HTMLAudioElement can only be connected to one MediaElementSourceNode (browser limitation)
+  - When visualizer was toggled off and back on, component remounted and attempted to reconnect the same audio element
+  - This caused `InvalidStateError: Failed to execute 'createMediaElementSource'` errors requiring page reload
+  - **Solution**: Implemented global WeakMap to track connected audio elements and reuse existing connections
+  - Audio element connections now persist across component lifecycle changes
+  - Visualizer can be toggled on/off without errors or page reloads
+  - Location: `src/components/FlowFieldBackground.tsx:27-70`
+
+#### Profile Page Authentication Errors
+
+- **UNAUTHORIZED Error Elimination**: Fixed excessive UNAUTHORIZED errors when viewing profile pages
+  - Root cause: Track card components (`EnhancedTrackCard`, `TrackCard`, `Player`) were calling authenticated endpoints (`music.isFavorite`, `music.getPlaylists`) without checking authentication status
+  - When viewing someone else's profile (or when not logged in), these queries were called and failed with UNAUTHORIZED
+  - This caused hundreds of error logs and degraded performance
+  - **Solution**: Added authentication checks using `useSession` hook before calling protected endpoints
+  - Queries now only execute when user is authenticated
+  - Eliminated all UNAUTHORIZED errors on public profile pages
+  - Components gracefully handle unauthenticated state (favorite/playlist features simply unavailable)
+  - Location: `src/components/EnhancedTrackCard.tsx:32-35, 59-61`
+  - Location: `src/components/TrackCard.tsx:36-39, 63-65`
+  - Location: `src/components/Player.tsx:85-88, 109-111`
+
+### Changed
+
+#### Pattern Controls Enhancement
+
+- **Pattern Duration Range**: Increased maximum pattern duration from 1000 to 10000 frames
+  - Minimum remains at 10 frames (default unchanged)
+  - Allows for much longer pattern displays for extended viewing
+  - Updated validation in FlowFieldRenderer to accept new range (10-10000)
+  - Location: `src/components/PatternControls.tsx:306-319`
+  - Location: `src/components/visualizers/FlowFieldRenderer.ts:10969-10971`
+
+### Technical Details
+
+**Audio Context Connection Management:**
+
+The fix implements a global WeakMap to track audio elements that have been connected to MediaElementSourceNodes:
+
+```typescript
+const connectedAudioElements = new WeakMap<
+  HTMLAudioElement,
+  {
+    sourceNode: MediaElementAudioSourceNode;
+    audioContext: AudioContext;
+    analyser: AnalyserNode;
+  }
+>();
+```
+
+**Key Improvements:**
+
+1. **Connection Reuse**: When FlowFieldBackground remounts with the same audio element, it reuses the existing connection instead of attempting to create a new one
+2. **Global Tracking**: WeakMap ensures connections persist across component unmounts/remounts
+3. **Proper Cleanup**: Source nodes are never disconnected from audio elements (they can't be reconnected), only component refs are reset
+4. **Error Prevention**: Eliminates all `InvalidStateError` exceptions related to audio context
+
+**Authentication-Aware Query Execution:**
+
+All track card components now check authentication before calling protected endpoints:
+
+```typescript
+const { data: session } = useSession();
+const isAuthenticated = !!session;
+
+const { data: favoriteData } = api.music.isFavorite.useQuery(
+  { trackId: track.id },
+  { enabled: showActions && isAuthenticated },
+);
+```
+
+**Benefits:**
+
+- Zero UNAUTHORIZED errors on public profile pages
+- Reduced server load (no unnecessary failed queries)
+- Cleaner console logs
+- Better user experience (no error spam)
+- Graceful degradation for unauthenticated users
+
+**Files Modified:**
+
+- Modified: `src/components/FlowFieldBackground.tsx` (audio context connection management)
+- Modified: `src/components/EnhancedTrackCard.tsx` (authentication checks)
+- Modified: `src/components/TrackCard.tsx` (authentication checks)
+- Modified: `src/components/Player.tsx` (authentication checks)
+- Modified: `src/components/PatternControls.tsx` (pattern duration range)
+- Modified: `src/components/visualizers/FlowFieldRenderer.ts` (pattern duration validation)
+- Modified: `package.json` (version bump to 0.7.7)
+
+### Stability Improvements Summary
+
+This release focuses on **critical stability improvements** that eliminate errors and improve reliability:
+
+1. **Visualizer Toggle Stability**: Users can now toggle the visualizer on/off without encountering errors or needing to reload the page
+2. **Profile Page Stability**: Public profile pages load without generating hundreds of UNAUTHORIZED errors
+3. **Error Reduction**: Eliminated all `InvalidStateError` and UNAUTHORIZED errors related to audio context and authentication
+4. **Performance**: Reduced unnecessary API calls and error handling overhead
+5. **User Experience**: Smoother interactions with no error spam in console logs
+
+These fixes address fundamental stability issues that were causing user-facing errors and requiring page reloads.
+
 ## [0.7.6] - 2025-12-30
 
 ### Added

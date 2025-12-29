@@ -5,6 +5,18 @@
 import { useEffect, useRef } from "react";
 import { FlowFieldRenderer } from "./visualizers/FlowFieldRenderer";
 
+// Global tracking of audio elements that have been connected to MediaElementSourceNode
+// Once an audio element is connected, it can NEVER be connected to another source node
+// This is a browser limitation - we must track this globally to prevent reconnection attempts
+const connectedAudioElements = new WeakMap<
+  HTMLAudioElement,
+  {
+    sourceNode: MediaElementAudioSourceNode;
+    audioContext: AudioContext;
+    analyser: AnalyserNode;
+  }
+>();
+
 interface FlowFieldBackgroundProps {
   audioElement: HTMLAudioElement | null;
   isPlaying: boolean;
@@ -26,46 +38,87 @@ export function FlowFieldBackground({
 
   // Initialize Web Audio API
   useEffect(() => {
-    if (!audioElement) return;
-
-    // Prevent duplicate source node creation for the same audio element
-    // This is critical because createMediaElementSource can only be called once per element
-    if (connectedAudioElementRef.current === audioElement) {
+    if (!audioElement) {
+      // Clean up refs when audio element is removed
+      sourceNodeRef.current = null;
+      analyserRef.current = null;
+      audioContextRef.current = null;
+      connectedAudioElementRef.current = null;
       return;
+    }
+
+    // Check if this audio element is already connected globally
+    const existingConnection = connectedAudioElements.get(audioElement);
+    
+    if (existingConnection) {
+      // Reuse existing connection - audio element can only be connected once
+      const { sourceNode, audioContext, analyser } = existingConnection;
+      
+      // Verify the connection is still valid
+      if (audioContext.state !== "closed" && sourceNode && analyser) {
+        audioContextRef.current = audioContext;
+        analyserRef.current = analyser;
+        sourceNodeRef.current = sourceNode;
+        connectedAudioElementRef.current = audioElement;
+        
+        // Ensure analyser is connected to destination (might have been disconnected)
+        try {
+          analyser.disconnect();
+          analyser.connect(audioContext.destination);
+        } catch {
+          // Already connected or context closed, ignore
+        }
+        
+        return;
+      } else {
+        // Connection is invalid, remove from map and create new one
+        connectedAudioElements.delete(audioElement);
+      }
     }
 
     const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
 
-    // Clean up previous connection if switching audio elements
-    if (sourceNodeRef.current) {
-      sourceNodeRef.current.disconnect();
-    }
-    if (analyserRef.current) {
-      analyserRef.current.disconnect();
-    }
-    if (audioContextRef.current) {
-      void audioContextRef.current.close();
-    }
+    // Create new connection
+    try {
+      const audioContext = new AudioContextClass();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.75;
 
-    const audioContext = new AudioContextClass();
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.75;
+      const source = audioContext.createMediaElementSource(audioElement);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
 
-    const source = audioContext.createMediaElementSource(audioElement);
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
+      // Store in global map - this audio element can NEVER be connected to another source
+      connectedAudioElements.set(audioElement, {
+        sourceNode: source,
+        audioContext,
+        analyser,
+      });
 
-    audioContextRef.current = audioContext;
-    analyserRef.current = analyser;
-    sourceNodeRef.current = source;
-    connectedAudioElementRef.current = audioElement;
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      sourceNodeRef.current = source;
+      connectedAudioElementRef.current = audioElement;
+    } catch (error) {
+      console.error("Failed to create MediaElementSourceNode:", error);
+      // Reset refs
+      audioContextRef.current = null;
+      analyserRef.current = null;
+      sourceNodeRef.current = null;
+      connectedAudioElementRef.current = null;
+    }
 
     return () => {
-      // Don't disconnect or reset refs on cleanup in Strict Mode
-      // This prevents attempting to reconnect the same audio element
-      // The cleanup will happen when the component unmounts or audio element changes
+      // On cleanup, we DON'T disconnect the source node from the audio element
+      // because once connected, it can never be reconnected to another source node
+      // We only clean up our refs - the connection persists globally
+      sourceNodeRef.current = null;
+      analyserRef.current = null;
+      audioContextRef.current = null;
+      // Keep connectedAudioElementRef set so we can detect reuse
+      // Don't reset it - we want to reuse the global connection on remount
     };
   }, [audioElement]);
 
