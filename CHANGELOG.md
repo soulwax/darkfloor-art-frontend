@@ -34,6 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+#### Queue Track Progression (CRITICAL)
+
+- **Queue Stuck on First Track**: Fixed critical bug where queue would not advance past the first song
+  - Root cause: `handleTrackEnd` function had stale closure over `queuedTracks`
+  - The dependency array included `queue` (derived value) but the function actually used `queuedTracks.length` directly
+  - This caused the track-end handler to check an outdated queue length, preventing progression to next track
+  - Solution: Updated dependency array to use `queuedTracks` instead of `queue`
+  - Queue now properly advances through all tracks as expected
+  - Also optimized `removeFromQueue` to avoid unnecessary re-renders
+  - Location: `src/hooks/useAudioPlayer.ts:265, 1049`
+
 #### Queue Track Removal
 
 - **Remove Button Visibility**: Fixed remove button showing for currently playing track which cannot be removed

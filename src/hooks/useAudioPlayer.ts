@@ -5,10 +5,18 @@
 import { AUDIO_CONSTANTS } from "@/config/constants";
 import { STORAGE_KEYS } from "@/config/storage";
 import { localStorage } from "@/services/storage";
-import type { QueuedTrack, SmartQueueSettings, SmartQueueState, Track } from "@/types";
+import type {
+  QueuedTrack,
+  SmartQueueSettings,
+  SmartQueueState,
+  Track,
+} from "@/types";
 import { getStreamUrlById } from "@/utils/api";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { loadPersistedQueueState, clearPersistedQueueState } from "./useQueuePersistence";
+import {
+  loadPersistedQueueState,
+  clearPersistedQueueState,
+} from "./useQueuePersistence";
 
 type RepeatMode = "none" | "one" | "all";
 
@@ -32,7 +40,13 @@ interface UseAudioPlayerOptions {
 }
 
 export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
-  const { onTrackChange, onTrackEnd, onDuplicateTrack, onError, initialQueueState } = options;
+  const {
+    onTrackChange,
+    onTrackEnd,
+    onDuplicateTrack,
+    onError,
+    initialQueueState,
+  } = options;
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // SPOTIFY-STYLE QUEUE: QueuedTrack with metadata for user vs smart queue
@@ -41,11 +55,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     isActive: false,
     lastRefreshedAt: null,
     seedTrackId: null,
+    trackCount: 0,
   });
 
   const [history, setHistory] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   // Keep ref in sync with state for event handlers
   useEffect(() => {
     isPlayingRef.current = isPlaying;
@@ -69,11 +84,16 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const failedTracksRef = useRef<Set<number>>(new Set());
   const isInitialMountRef = useRef(true); // Track if this is the first render
   const isPlayPauseOperationRef = useRef(false); // Prevent rapid play/pause loops
-  const lastStateSyncRef = useRef<{ time: number; wasPlaying: boolean } | null>(null); // Track state sync to prevent loops
+  const lastStateSyncRef = useRef<{ time: number; wasPlaying: boolean } | null>(
+    null,
+  ); // Track state sync to prevent loops
   const isPlayingRef = useRef(isPlaying); // Track current playing state for event handlers
 
   // Derived state: queue is extracted from queuedTracks for backward compatibility
-  const queue = useMemo(() => queuedTracks.map(qt => qt.track), [queuedTracks]);
+  const queue = useMemo(
+    () => queuedTracks.map((qt) => qt.track),
+    [queuedTracks],
+  );
   const currentTrack = queue[0] ?? null;
 
   // Helper functions for queue management
@@ -81,22 +101,25 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     return `queue-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }, []);
 
-  const createQueuedTrack = useCallback((track: Track, source: 'user' | 'smart'): QueuedTrack => {
-    return {
-      track,
-      queueSource: source,
-      addedAt: new Date(),
-      queueId: generateQueueId(),
-    };
-  }, [generateQueueId]);
+  const createQueuedTrack = useCallback(
+    (track: Track, source: "user" | "smart"): QueuedTrack => {
+      return {
+        track,
+        queueSource: source,
+        addedAt: new Date(),
+        queueId: generateQueueId(),
+      };
+    },
+    [generateQueueId],
+  );
 
   const getQueueSections = useCallback(() => {
     const userTracks: QueuedTrack[] = [];
     const smartTracks: QueuedTrack[] = [];
 
     // Skip queue[0] (current track) when splitting sections
-    queuedTracks.slice(1).forEach(qt => {
-      if (qt.queueSource === 'smart') {
+    queuedTracks.slice(1).forEach((qt) => {
+      if (qt.queueSource === "smart") {
         smartTracks.push(qt);
       } else {
         userTracks.push(qt);
@@ -130,24 +153,48 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (persistedState) {
       // Check if queue was intentionally cleared (empty or only has current track)
       // If queue is empty, don't restore it (it was intentionally cleared)
-      const hasQueuedTracks = 'queuedTracks' in persistedState && Array.isArray((persistedState as any).queuedTracks) && (persistedState as any).queuedTracks.length > 0;
-      const hasLegacyQueue = 'queue' in persistedState && Array.isArray(persistedState.queue) && persistedState.queue.length > 0;
-      
+
+      // Type guard for V2 format
+      interface PersistedStateV2 {
+        version: 2;
+        queuedTracks: QueuedTrack[];
+        smartQueueState?: SmartQueueState;
+        history: Track[];
+        isShuffled: boolean;
+        repeatMode: RepeatMode;
+        currentTime: number;
+      }
+
+      const isV2State = (state: unknown): state is PersistedStateV2 => {
+        return (
+          typeof state === "object" &&
+          state !== null &&
+          "queuedTracks" in state &&
+          Array.isArray(state.queuedTracks)
+        );
+      };
+
+      const hasQueuedTracks =
+        isV2State(persistedState) && persistedState.queuedTracks.length > 0;
+      const hasLegacyQueue =
+        "queue" in persistedState &&
+        Array.isArray(persistedState.queue) &&
+        persistedState.queue.length > 0;
+
       // Only restore if there are tracks to restore
       if (hasQueuedTracks || hasLegacyQueue) {
         // Persistence migration will be handled in useQueuePersistence.ts
         // For now, check if we have queuedTracks (V2) or queue (V1)
-        const stateAny = persistedState as any;
-        if ('queuedTracks' in persistedState && Array.isArray(stateAny.queuedTracks)) {
-          setQueuedTracks(stateAny.queuedTracks as QueuedTrack[]);
-          if (stateAny.smartQueueState) {
-            setSmartQueueState(stateAny.smartQueueState as SmartQueueState);
+        if (isV2State(persistedState)) {
+          setQueuedTracks(persistedState.queuedTracks);
+          if (persistedState.smartQueueState) {
+            setSmartQueueState(persistedState.smartQueueState);
           }
-        } else if ('queue' in persistedState && persistedState.queue) {
+        } else if ("queue" in persistedState && persistedState.queue) {
           // Migrate old V1 format: convert Track[] to QueuedTrack[]
           const migratedTracks = persistedState.queue.map((track, idx) => ({
             track,
-            queueSource: 'user' as const,
+            queueSource: "user" as const,
             addedAt: new Date(),
             queueId: `migrated-${track.id}-${idx}`,
           }));
@@ -159,7 +206,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         // Don't auto-restore currentTime to avoid unexpected jumps
       } else {
         // Queue was empty (intentionally cleared), don't restore
-        console.log("[useAudioPlayer] Queue was cleared, not restoring from persistence");
+        console.log(
+          "[useAudioPlayer] Queue was cleared, not restoring from persistence",
+        );
       }
     }
   }, [initialQueueState]);
@@ -186,7 +235,14 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       repeatMode,
     };
     localStorage.set(STORAGE_KEYS.QUEUE_STATE, queueState);
-  }, [queuedTracks, smartQueueState, history, currentTime, isShuffled, repeatMode]);
+  }, [
+    queuedTracks,
+    smartQueueState,
+    history,
+    currentTime,
+    isShuffled,
+    repeatMode,
+  ]);
 
   // Initialize audio element
   useEffect(() => {
@@ -203,7 +259,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     if (audioRef.current && currentTrack && !audioRef.current.src) {
       // Only initialize if there's no source already set
       // This happens when state is restored from localStorage
-      console.log("[useAudioPlayer] 🔄 Restoring audio source from localStorage (no autoplay)");
+      console.log(
+        "[useAudioPlayer] 🔄 Restoring audio source from localStorage (no autoplay)",
+      );
       const streamUrl = getStreamUrlById(currentTrack.id.toString());
       audioRef.current.src = streamUrl;
       audioRef.current.load();
@@ -245,7 +303,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         const allTracks = [...history, currentTrack];
         const newQueuedTracks = allTracks.map((track, idx) => ({
           track,
-          queueSource: 'user' as const,
+          queueSource: "user" as const,
           addedAt: new Date(),
           queueId: `repeat-${track.id}-${idx}`,
         }));
@@ -258,11 +316,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       // Clear the queue since playback is complete
       setQueuedTracks([]);
       setIsPlaying(false);
-      console.log(
-        "[useAudioPlayer] 🏁 Playback ended, queue cleared",
-      );
+      console.log("[useAudioPlayer] 🏁 Playback ended, queue cleared");
     }
-  }, [currentTrack, queue, repeatMode, history, onTrackEnd]);
+  }, [currentTrack, queuedTracks, repeatMode, history, onTrackEnd]);
 
   // Media Session API integration for background playback
   useEffect(() => {
@@ -317,7 +373,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
   }, [currentTrack, isPlaying]);
 
-
   // Audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
@@ -326,7 +381,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const handleTimeUpdate = () => {
       const newTime = audio.currentTime;
       // Log every 5 seconds to help diagnose if time is progressing
-      if (Math.floor(newTime) % 5 === 0 && Math.floor(newTime) !== Math.floor(currentTime)) {
+      if (
+        Math.floor(newTime) % 5 === 0 &&
+        Math.floor(newTime) !== Math.floor(currentTime)
+      ) {
         console.log("[useAudioPlayer] Time update:", {
           currentTime: newTime,
           paused: audio.paused,
@@ -447,7 +505,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("error", handleError);
     };
-  }, [handleTrackEnd, currentTrack, onError]);
+  }, [handleTrackEnd, currentTrack, onError, currentTime]);
 
   const loadTrack = useCallback(
     (track: Track, streamUrl: string) => {
@@ -573,13 +631,17 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   const play = useCallback(async () => {
     if (!audioRef.current) {
-      console.warn("[useAudioPlayer] play() called but audioRef.current is null");
+      console.warn(
+        "[useAudioPlayer] play() called but audioRef.current is null",
+      );
       return;
     }
 
     // Guard: Prevent rapid play/pause loops
     if (isPlayPauseOperationRef.current) {
-      console.debug("[useAudioPlayer] Play operation already in progress, skipping");
+      console.debug(
+        "[useAudioPlayer] Play operation already in progress, skipping",
+      );
       return;
     }
 
@@ -595,7 +657,8 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // If audio element is connected to Web Audio API, ensure context is resumed
       // Check if there's a connection via the audio context manager
-      const { getAudioConnection, ensureConnectionChain } = await import("@/utils/audioContextManager");
+      const { getAudioConnection, ensureConnectionChain } =
+        await import("@/utils/audioContextManager");
       const connection = getAudioConnection(audioRef.current);
       if (connection) {
         console.log("[useAudioPlayer] Audio connected to Web Audio API", {
@@ -603,18 +666,20 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           hasAnalyser: !!connection.analyser,
           hasFilters: !!connection.filters,
         });
-        
+
         // CRITICAL: When an audio element is connected to MediaElementSourceNode,
         // it MUST have a complete connection chain to destination, otherwise audio won't play.
         // Ensure the chain is complete before attempting playback.
         ensureConnectionChain(connection);
-        
+
         if (connection.audioContext.state === "suspended") {
           console.log("[useAudioPlayer] Resuming suspended audio context");
           await connection.audioContext.resume();
         }
       } else {
-        console.log("[useAudioPlayer] Audio not connected to Web Audio API (normal playback)");
+        console.log(
+          "[useAudioPlayer] Audio not connected to Web Audio API (normal playback)",
+        );
       }
 
       // Ensure source is loaded
@@ -626,35 +691,41 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Check if audio is ready to play
       if (audioRef.current.readyState < 2) {
-        console.log("[useAudioPlayer] Audio not ready, waiting for canplay event");
+        console.log(
+          "[useAudioPlayer] Audio not ready, waiting for canplay event",
+        );
         // Wait for canplay event
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error("Audio load timeout"));
           }, 10000);
-          
+
           const handleCanPlay = () => {
             clearTimeout(timeout);
             audioRef.current?.removeEventListener("canplay", handleCanPlay);
             audioRef.current?.removeEventListener("error", handleError);
             resolve();
           };
-          
+
           const handleError = () => {
             clearTimeout(timeout);
             audioRef.current?.removeEventListener("canplay", handleCanPlay);
             audioRef.current?.removeEventListener("error", handleError);
             reject(new Error("Audio load error"));
           };
-          
-          audioRef.current?.addEventListener("canplay", handleCanPlay, { once: true });
-          audioRef.current?.addEventListener("error", handleError, { once: true });
+
+          audioRef.current?.addEventListener("canplay", handleCanPlay, {
+            once: true,
+          });
+          audioRef.current?.addEventListener("error", handleError, {
+            once: true,
+          });
         });
       }
 
       const playPromise = audioRef.current.play();
       console.log("[useAudioPlayer] play() called, waiting for promise...");
-      
+
       await playPromise;
       console.log("[useAudioPlayer] Playback started successfully", {
         paused: audioRef.current.paused,
@@ -664,12 +735,18 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Double-check connection chain after play
       if (connection) {
-        console.log("[useAudioPlayer] Verifying connection chain after play...");
-        const { verifyConnectionChain } = await import("@/utils/audioContextManager");
+        console.log(
+          "[useAudioPlayer] Verifying connection chain after play...",
+        );
+        const { verifyConnectionChain } =
+          await import("@/utils/audioContextManager");
         const isValid = verifyConnectionChain(connection);
         if (!isValid) {
-          console.warn("[useAudioPlayer] Connection chain invalid, rebuilding...");
-          const { ensureConnectionChain } = await import("@/utils/audioContextManager");
+          console.warn(
+            "[useAudioPlayer] Connection chain invalid, rebuilding...",
+          );
+          const { ensureConnectionChain } =
+            await import("@/utils/audioContextManager");
           ensureConnectionChain(connection);
         } else {
           console.log("[useAudioPlayer] Connection chain verified");
@@ -682,12 +759,14 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       console.error("[useAudioPlayer] Error details:", {
         name: err instanceof Error ? err.name : "Unknown",
         message: err instanceof Error ? err.message : String(err),
-        audioState: audioRef.current ? {
-          src: audioRef.current.src,
-          paused: audioRef.current.paused,
-          readyState: audioRef.current.readyState,
-          currentTime: audioRef.current.currentTime,
-        } : "no audio element",
+        audioState: audioRef.current
+          ? {
+              src: audioRef.current.src,
+              paused: audioRef.current.paused,
+              readyState: audioRef.current.readyState,
+              currentTime: audioRef.current.currentTime,
+            }
+          : "no audio element",
       });
       setIsPlaying(false);
     } finally {
@@ -700,14 +779,18 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
   const pause = useCallback(() => {
     if (!audioRef.current) {
-      console.warn("[useAudioPlayer] Cannot pause: audio element not initialized");
+      console.warn(
+        "[useAudioPlayer] Cannot pause: audio element not initialized",
+      );
       setIsPlaying(false);
       return;
     }
 
     // Guard: Prevent rapid play/pause loops
     if (isPlayPauseOperationRef.current) {
-      console.debug("[useAudioPlayer] Pause operation already in progress, skipping");
+      console.debug(
+        "[useAudioPlayer] Pause operation already in progress, skipping",
+      );
       return;
     }
 
@@ -765,7 +848,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         // Go to previous track
         const prevTrack = history[history.length - 1];
         if (prevTrack && currentTrack) {
-          setQueuedTracks((prev) => [createQueuedTrack(prevTrack, 'user'), ...prev]); // Insert prevTrack at queue[0]
+          setQueuedTracks((prev) => [
+            createQueuedTrack(prevTrack, "user"),
+            ...prev,
+          ]); // Insert prevTrack at queue[0]
         }
         setHistory((prev) => prev.slice(0, -1));
       }
@@ -872,7 +958,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     setHistory(previousTracks);
 
     // NEW: Insert prevTrack at queue[0], keeping rest of queue intact
-    setQueuedTracks((prev) => [createQueuedTrack(prevTrack, 'user'), ...prev]);
+    setQueuedTracks((prev) => [createQueuedTrack(prevTrack, "user"), ...prev]);
 
     return prevTrack;
   }, [history, createQueuedTrack]);
@@ -954,7 +1040,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         });
 
         if (uniqueTracks.length > 0) {
-          const newQueuedTracks = uniqueTracks.map(t => createQueuedTrack(t, 'user'));
+          const newQueuedTracks = uniqueTracks.map((t) =>
+            createQueuedTrack(t, "user"),
+          );
           setQueuedTracks((prev) => {
             console.log("[useAudioPlayer] ✅ Adding tracks to queue:", {
               previousSize: prev.length,
@@ -973,7 +1061,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         console.log(
           "[useAudioPlayer] ➕ Adding valid tracks without duplicate check",
         );
-        const newQueuedTracks = validTracks.map(t => createQueuedTrack(t, 'user'));
+        const newQueuedTracks = validTracks.map((t) =>
+          createQueuedTrack(t, "user"),
+        );
         setQueuedTracks((prev) => {
           console.log("[useAudioPlayer] ✅ Queue updated:", {
             previousSize: prev.length,
@@ -1011,7 +1101,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       }
 
       // Insert at position 1 (right after current track at queuedTracks[0])
-      const newQueuedTracks = validTracks.map(t => createQueuedTrack(t, 'user'));
+      const newQueuedTracks = validTracks.map((t) =>
+        createQueuedTrack(t, "user"),
+      );
       setQueuedTracks((prev) => {
         if (prev.length === 0) {
           return newQueuedTracks; // No current track, these become the queue
@@ -1026,7 +1118,6 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   const removeFromQueue = useCallback((index: number) => {
     console.log("[useAudioPlayer] removeFromQueue called", {
       index,
-      queueLength: queuedTracks.length,
       isCurrentTrack: index === 0,
     });
 
@@ -1047,13 +1138,13 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       });
       return newQueue;
     });
-  }, [queuedTracks]);
+  }, []);
 
   const clearQueue = useCallback(() => {
     // Clear only upcoming tracks (queuedTracks[1..n]), keep current track (queuedTracks[0])
     const newQueue = queuedTracks.length > 0 ? [queuedTracks[0]!] : [];
     setQueuedTracks(newQueue);
-    
+
     // If queue is now empty (no current track), clear persisted state
     // Otherwise, persist will happen automatically via the useEffect
     if (newQueue.length === 0) {
@@ -1097,7 +1188,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const tracksAfter = queue.slice(index + 1); // Everything after selected
 
       setHistory((prev) => [...prev, ...tracksToHistory]);
-      setQueuedTracks([createQueuedTrack(selectedTrack, 'user'), ...tracksAfter.map(t => createQueuedTrack(t, 'user'))]); // Selected becomes queue[0]
+      setQueuedTracks([
+        createQueuedTrack(selectedTrack, "user"),
+        ...tracksAfter.map((t) => createQueuedTrack(t, "user")),
+      ]); // Selected becomes queue[0]
 
       return selectedTrack;
     },
@@ -1112,7 +1206,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const [currentQueuedTrack, ...rest] = prev;
       if (rest.length === 0) return prev;
 
-      const shuffled = rest.map(qt => qt.track);
+      const shuffled = rest.map((qt) => qt.track);
       const artists = new Map<number, Track[]>();
 
       // Group tracks by artist
@@ -1169,7 +1263,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       }
 
       // Return current track at queue[0] followed by shuffled rest
-      return [currentQueuedTrack!, ...result.map(t => createQueuedTrack(t, 'user'))];
+      return [
+        currentQueuedTrack!,
+        ...result.map((t) => createQueuedTrack(t, "user")),
+      ];
     });
   }, [createQueuedTrack]);
 
@@ -1186,14 +1283,17 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
         // Restore original order (preserving current queue[0])
         if (originalQueueOrder.length > 0 && queue.length > 0) {
           const [current] = queue;
-          setQueuedTracks([createQueuedTrack(current!, 'user'), ...originalQueueOrder.map(t => createQueuedTrack(t, 'user'))]);
+          setQueuedTracks([
+            createQueuedTrack(current!, "user"),
+            ...originalQueueOrder.map((t) => createQueuedTrack(t, "user")),
+          ]);
           setOriginalQueueOrder([]);
         }
       }
 
       return newShuffleState;
     });
-  }, [queue, originalQueueOrder, smartShuffle]);
+  }, [queue, originalQueueOrder, smartShuffle, createQueuedTrack]);
 
   const cycleRepeatMode = useCallback(() => {
     setRepeatMode((prev) => {
@@ -1204,56 +1304,73 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
   }, []);
 
   // Smart Queue Operations
-  const addSmartTracks = useCallback(async (count = 5): Promise<Track[]> => {
-    const currentQueuedTrack = queuedTracks[0];
-    if (!currentQueuedTrack) {
-      console.warn("[useAudioPlayer] ⚠️ Cannot add smart tracks: no current track");
-      return [];
-    }
-
-    const seedTrack = currentQueuedTrack.track;
-    console.log("[useAudioPlayer] 🎵 Adding smart tracks based on:", seedTrack.title);
-
-    try {
-      // Call the smart queue service (will be wired up in AudioPlayerContext)
-      if (options.onAutoQueueTrigger) {
-        const recommendedTracks = await options.onAutoQueueTrigger(seedTrack, queuedTracks.length);
-        const tracksToAdd = recommendedTracks.slice(0, count);
-
-        if (tracksToAdd.length > 0) {
-          const smartQueuedTracks = tracksToAdd.map(t => createQueuedTrack(t, 'smart'));
-          setQueuedTracks((prev) => [...prev, ...smartQueuedTracks]);
-          setSmartQueueState({
-            isActive: true,
-            lastRefreshedAt: new Date(),
-            seedTrackId: seedTrack.id,
-          });
-          console.log(`[useAudioPlayer] ✅ Added ${tracksToAdd.length} smart tracks to queue`);
-          return tracksToAdd;
-        }
+  const addSmartTracks = useCallback(
+    async (count = 5): Promise<Track[]> => {
+      const currentQueuedTrack = queuedTracks[0];
+      if (!currentQueuedTrack) {
+        console.warn(
+          "[useAudioPlayer] ⚠️ Cannot add smart tracks: no current track",
+        );
+        return [];
       }
-      return [];
-    } catch (error) {
-      console.error("[useAudioPlayer] ❌ Failed to add smart tracks:", error);
-      return [];
-    }
-  }, [queuedTracks, createQueuedTrack, options]);
+
+      const seedTrack = currentQueuedTrack.track;
+      console.log(
+        "[useAudioPlayer] 🎵 Adding smart tracks based on:",
+        seedTrack.title,
+      );
+
+      try {
+        // Call the smart queue service (will be wired up in AudioPlayerContext)
+        if (options.onAutoQueueTrigger) {
+          const recommendedTracks = await options.onAutoQueueTrigger(
+            seedTrack,
+            queuedTracks.length,
+          );
+          const tracksToAdd = recommendedTracks.slice(0, count);
+
+          if (tracksToAdd.length > 0) {
+            const smartQueuedTracks = tracksToAdd.map((t) =>
+              createQueuedTrack(t, "smart"),
+            );
+            setQueuedTracks((prev) => [...prev, ...smartQueuedTracks]);
+            setSmartQueueState({
+              isActive: true,
+              lastRefreshedAt: new Date(),
+              seedTrackId: seedTrack.id,
+              trackCount: tracksToAdd.length,
+            });
+            console.log(
+              `[useAudioPlayer] ✅ Added ${tracksToAdd.length} smart tracks to queue`,
+            );
+            return tracksToAdd;
+          }
+        }
+        return [];
+      } catch (error) {
+        console.error("[useAudioPlayer] ❌ Failed to add smart tracks:", error);
+        return [];
+      }
+    },
+    [queuedTracks, createQueuedTrack, options],
+  );
 
   const refreshSmartTracks = useCallback(async (): Promise<void> => {
     console.log("[useAudioPlayer] 🔄 Refreshing smart tracks");
     // Remove all current smart tracks
-    setQueuedTracks((prev) => prev.filter(qt => qt.queueSource !== 'smart'));
+    setQueuedTracks((prev) => prev.filter((qt) => qt.queueSource !== "smart"));
     // Add new smart tracks
     await addSmartTracks();
   }, [addSmartTracks]);
 
   const clearSmartTracks = useCallback(() => {
     console.log("[useAudioPlayer] 🧹 Clearing smart tracks");
-    setQueuedTracks((prev) => prev.filter(qt => qt.queueSource !== 'smart'));
+    setQueuedTracks((prev) => prev.filter((qt) => qt.queueSource !== "smart"));
     setSmartQueueState({
       isActive: false,
       lastRefreshedAt: null,
       seedTrackId: null,
+      trackCount: 0,
     });
   }, []);
 
@@ -1274,7 +1391,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Validate that duration and currentTime are finite
       if (!isFinite(currentTime) || !isFinite(duration)) {
-        console.warn(`[useAudioPlayer] ⚠️ Skip forward failed: audio not ready (currentTime: ${currentTime}, duration: ${duration})`);
+        console.warn(
+          `[useAudioPlayer] ⚠️ Skip forward failed: audio not ready (currentTime: ${currentTime}, duration: ${duration})`,
+        );
         return;
       }
 
@@ -1282,11 +1401,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Final validation before seeking
       if (!isFinite(newTime)) {
-        console.error(`[useAudioPlayer] ❌ Skip forward calculated invalid time: ${newTime} (currentTime: ${currentTime}, duration: ${duration}, seconds: ${validSeconds})`);
+        console.error(
+          `[useAudioPlayer] ❌ Skip forward calculated invalid time: ${newTime} (currentTime: ${currentTime}, duration: ${duration}, seconds: ${validSeconds})`,
+        );
         return;
       }
 
-      console.log(`[useAudioPlayer] ⏩ Skip forward ${validSeconds}s: ${currentTime.toFixed(1)}s → ${newTime.toFixed(1)}s`);
+      console.log(
+        `[useAudioPlayer] ⏩ Skip forward ${validSeconds}s: ${currentTime.toFixed(1)}s → ${newTime.toFixed(1)}s`,
+      );
       seek(newTime);
     },
     [seek],
@@ -1304,7 +1427,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Validate that currentTime is finite
       if (!isFinite(currentTime)) {
-        console.warn(`[useAudioPlayer] ⚠️ Skip backward failed: audio not ready (currentTime: ${currentTime})`);
+        console.warn(
+          `[useAudioPlayer] ⚠️ Skip backward failed: audio not ready (currentTime: ${currentTime})`,
+        );
         return;
       }
 
@@ -1312,11 +1437,15 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       // Final validation before seeking
       if (!isFinite(newTime)) {
-        console.error(`[useAudioPlayer] ❌ Skip backward calculated invalid time: ${newTime} (currentTime: ${currentTime}, seconds: ${validSeconds})`);
+        console.error(
+          `[useAudioPlayer] ❌ Skip backward calculated invalid time: ${newTime} (currentTime: ${currentTime}, seconds: ${validSeconds})`,
+        );
         return;
       }
 
-      console.log(`[useAudioPlayer] ⏪ Skip backward ${validSeconds}s: ${currentTime.toFixed(1)}s → ${newTime.toFixed(1)}s`);
+      console.log(
+        `[useAudioPlayer] ⏪ Skip backward ${validSeconds}s: ${currentTime.toFixed(1)}s → ${newTime.toFixed(1)}s`,
+      );
       seek(newTime);
     },
     [seek],
@@ -1333,7 +1462,9 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     // This prevents "NotAllowedError" from browser autoplay policy
     // User must explicitly click play or select a song
     if (isInitialMountRef.current) {
-      console.log("[useAudioPlayer] 🚫 Skipping auto-play on initial mount (browser autoplay policy)");
+      console.log(
+        "[useAudioPlayer] 🚫 Skipping auto-play on initial mount (browser autoplay policy)",
+      );
       isInitialMountRef.current = false;
       return;
     }
@@ -1342,28 +1473,31 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
       const streamUrl = getStreamUrlById(currentTrack.id.toString());
       // Only load if the track is different from what's currently loaded
       if (audioRef.current.src !== streamUrl || !audioRef.current.src) {
-        console.log(`[useAudioPlayer] 🎶 Loading new track: ${currentTrack.title}`, {
-          streamUrl,
-          currentSrc: audioRef.current.src,
-        });
+        console.log(
+          `[useAudioPlayer] 🎶 Loading new track: ${currentTrack.title}`,
+          {
+            streamUrl,
+            currentSrc: audioRef.current.src,
+          },
+        );
         loadTrack(currentTrack, streamUrl);
         // Auto-play when user explicitly selects a song
         // Wait a bit for source to be set and connection chain to be ready
         setTimeout(() => {
           play().catch((error) => {
-          // Ignore abort errors - these are normal when switching tracks quickly
-          if (
-            error instanceof DOMException &&
-            (error.name === "AbortError" ||
-              error.message?.includes("aborted") ||
-              error.message?.includes("fetching process"))
-          ) {
-            console.debug(
-              "[useAudioPlayer] Playback aborted (normal during rapid track changes)",
-            );
-            return;
-          }
-          console.error("Playback failed:", error);
+            // Ignore abort errors - these are normal when switching tracks quickly
+            if (
+              error instanceof DOMException &&
+              (error.name === "AbortError" ||
+                error.message?.includes("aborted") ||
+                error.message?.includes("fetching process"))
+            ) {
+              console.debug(
+                "[useAudioPlayer] Playback aborted (normal during rapid track changes)",
+              );
+              return;
+            }
+            console.error("Playback failed:", error);
           });
         }, 150); // Small delay to ensure source is set and connection chain is ready
       }
@@ -1379,22 +1513,31 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
     const syncInterval = setInterval(() => {
       if (audioRef.current && !isPlayPauseOperationRef.current) {
         const actuallyPlaying = !audioRef.current.paused;
-        
+
         // Only sync if there's a real mismatch and we haven't just synced this state
         if (actuallyPlaying !== isPlaying) {
           const now = Date.now();
           const lastSync = lastStateSyncRef.current;
-          
+
           // Prevent rapid syncs: only sync if it's been at least 200ms since last sync
           // or if the state has been consistently different
-          const shouldSync = !lastSync || 
-            (now - lastSync.time > 200) ||
-            (lastSync.wasPlaying !== actuallyPlaying);
-          
+          const shouldSync =
+            !lastSync ||
+            now - lastSync.time > 200 ||
+            lastSync.wasPlaying !== actuallyPlaying;
+
           if (shouldSync) {
-            console.log("[useAudioPlayer] 🔄 Syncing state: audio is", actuallyPlaying ? "playing" : "paused", "but state says", isPlaying);
+            console.log(
+              "[useAudioPlayer] 🔄 Syncing state: audio is",
+              actuallyPlaying ? "playing" : "paused",
+              "but state says",
+              isPlaying,
+            );
             setIsPlaying(actuallyPlaying);
-            lastStateSyncRef.current = { time: now, wasPlaying: actuallyPlaying };
+            lastStateSyncRef.current = {
+              time: now,
+              wasPlaying: actuallyPlaying,
+            };
           }
         }
       }
@@ -1552,7 +1695,10 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
           setHistory((prev) => [...prev, currentTrack]);
         }
         // FIX: Insert new track at position 0, keep rest of queue
-        setQueuedTracks((prev) => [createQueuedTrack(track, 'user'), ...prev.slice(1)]); // Keep queue[1..n], replace queue[0]
+        setQueuedTracks((prev) => [
+          createQueuedTrack(track, "user"),
+          ...prev.slice(1),
+        ]); // Keep queue[1..n], replace queue[0]
       } else if (trackIndex === 0) {
         // Track is already playing (queue[0]), just restart it
         console.log(
@@ -1573,15 +1719,12 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
             loadTrack(track, streamUrl);
           } else {
             // Source is correct, just restart playback
-            console.log(
-              "[useAudioPlayer] Restarting playback from beginning",
-              {
-                src: audioRef.current.src,
-                currentTime: audioRef.current.currentTime,
-                paused: audioRef.current.paused,
-                readyState: audioRef.current.readyState,
-              },
-            );
+            console.log("[useAudioPlayer] Restarting playback from beginning", {
+              src: audioRef.current.src,
+              currentTime: audioRef.current.currentTime,
+              paused: audioRef.current.paused,
+              readyState: audioRef.current.readyState,
+            });
             audioRef.current.currentTime = 0;
             audioRef.current.play().catch((error) => {
               console.error("Playback failed:", error);
@@ -1606,7 +1749,7 @@ export function useAudioPlayer(options: UseAudioPlayerOptions = {}) {
 
       return track;
     },
-    [queue, currentTrack, playFromQueue, isValidTrack, loadTrack],
+    [queue, currentTrack, playFromQueue, isValidTrack, loadTrack, createQueuedTrack],
   );
 
   return {

@@ -831,6 +831,7 @@ export const musicRouter = createTRPCRouter({
               isActive: z.boolean(),
               lastRefreshedAt: z.string().nullable(),
               seedTrackId: z.number().nullable(),
+              trackCount: z.number(),
             }),
             history: z.array(z.any()),
             currentTime: z.number(),

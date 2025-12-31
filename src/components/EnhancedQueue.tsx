@@ -959,14 +959,14 @@ export function EnhancedQueue({
                 {smartQueueState.isActive && smartTracks.length > 0 && (
                   <div className="flex items-center gap-2 px-3 py-2 border-y border-[rgba(245,241,232,0.1)]">
                     <button
-                      onClick={onRefreshSmartTracks}
+                      onClick={() => onRefreshSmartTracks?.()}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[rgba(88,198,177,0.1)] hover:bg-[rgba(88,198,177,0.2)] transition-colors"
                     >
                       <RefreshCw className="h-4 w-4" />
                       Refresh
                     </button>
                     <button
-                      onClick={onClearSmartTracks}
+                      onClick={() => onClearSmartTracks?.()}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[rgba(248,139,130,0.1)] hover:bg-[rgba(248,139,130,0.2)] transition-colors"
                     >
                       <X className="h-4 w-4" />
@@ -1006,7 +1006,7 @@ export function EnhancedQueue({
                 {/* Add Smart Tracks Button */}
                 {!smartQueueState.isActive && queuedTracks.length > 0 && onAddSmartTracks && (
                   <button
-                    onClick={onAddSmartTracks}
+                    onClick={() => onAddSmartTracks()}
                     className="mx-3 my-2 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-[rgba(88,198,177,0.1)] hover:bg-[rgba(88,198,177,0.2)] transition-colors"
                   >
                     <Sparkles className="h-4 w-4 text-[var(--color-accent-strong)]" />

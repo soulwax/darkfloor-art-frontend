@@ -99,6 +99,7 @@ export function loadPersistedQueueState(): QueueState | null {
         isActive: false,
         lastRefreshedAt: null,
         seedTrackId: null,
+        trackCount: 0,
       },
       history: v1.history,
       currentTime: v1.currentTime,
