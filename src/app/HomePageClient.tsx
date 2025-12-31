@@ -72,6 +72,9 @@ export default function HomePageClient() {
       setCurrentQuery(searchQuery);
       setIsArtistSearch(false); // Regular search, not artist-specific
       setApiOffset(0); // Reset API offset for regular search
+      // Clear previous results immediately to prevent stale results from showing
+      setResults([]);
+      setTotal(0);
 
       try {
         const response = await searchTracks(searchQuery, 0);
@@ -98,6 +101,9 @@ export default function HomePageClient() {
       setLoading(true);
       setIsArtistSearch(false); // Album search, not artist-specific
       setApiOffset(0); // Reset API offset for album search
+      // Clear previous results immediately to prevent stale results from showing
+      setResults([]);
+      setTotal(0);
 
       try {
         const response = await getAlbumTracks(albumId);
@@ -277,6 +283,9 @@ export default function HomePageClient() {
       setCurrentQuery(artistName);
       setIsArtistSearch(true); // Mark as artist search mode
       setApiOffset(0); // Reset API offset for new artist search
+      // Clear previous results immediately to prevent stale results from showing
+      setResults([]);
+      setTotal(0);
 
       try {
         const response = await searchTracksByArtist(artistName, 0);
@@ -313,6 +322,9 @@ export default function HomePageClient() {
   const handleShufflePlay = useCallback(async () => {
     hapticSuccess();
     setLoading(true);
+    // Clear previous results immediately to prevent stale results from showing
+    setResults([]);
+    setTotal(0);
 
     try {
       // Search for a popular artist to get good results
