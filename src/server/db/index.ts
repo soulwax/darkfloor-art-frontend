@@ -7,14 +7,21 @@ import path from "path";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
+// Ensure DATABASE_URL is set (required for main app, optional only for drizzle-kit)
+if (!env.DATABASE_URL) {
+  throw new Error(
+    "DATABASE_URL is required for the application. It is only optional for drizzle-kit which can fall back to legacy DB_* variables."
+  );
+}
+
 // Determine SSL configuration based on DATABASE_URL and certificate availability
 function getSslConfig() {
   // Check if it's a cloud database (Aiven, AWS RDS, etc.) that requires SSL
-  const isCloudDb = env.DATABASE_URL.includes("aivencloud.com") || 
-                    env.DATABASE_URL.includes("rds.amazonaws.com") ||
-                    env.DATABASE_URL.includes("sslmode=");
+  const isCloudDb = env.DATABASE_URL!.includes("aivencloud.com") || 
+                    env.DATABASE_URL!.includes("rds.amazonaws.com") ||
+                    env.DATABASE_URL!.includes("sslmode=");
 
-  if (!isCloudDb && env.DATABASE_URL.includes("localhost")) {
+  if (!isCloudDb && env.DATABASE_URL!.includes("localhost")) {
     // Local database - SSL not needed
     console.log("[DB] Local database detected. SSL disabled.");
     return undefined;

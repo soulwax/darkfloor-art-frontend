@@ -55,9 +55,15 @@ function getSslConfig(connectionString: string) {
   };
 }
 
+if (!process.env.DATABASE_URL) {
+  console.error("❌ Error: DATABASE_URL environment variable is required");
+  process.exit(1);
+}
+
+const sslConfig = getSslConfig(process.env.DATABASE_URL);
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
-  ...(getSslConfig(process.env.DATABASE_URL!) && { ssl: getSslConfig(process.env.DATABASE_URL!) }),
+  connectionString: process.env.DATABASE_URL,
+  ...(sslConfig && { ssl: sslConfig }),
 });
 
 async function populateUserHash() {

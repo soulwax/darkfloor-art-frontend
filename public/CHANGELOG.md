@@ -5,6 +5,83 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-01-02
+
+### Added
+
+#### Neon Database Migration Support
+
+- **Neon Database Integration**: Migrated database connection to support Neon PostgreSQL
+  - Added support for `DATABASE_URL` connection string (pooled connection)
+  - Added support for `DATABASE_UNPOOLED` for unpooled connections
+  - Migration script now uses `OLD_DATABASE_URL` as source and `DATABASE_UNPOOLED` as destination
+  - Location: `drizzle.config.ts`, `src/server/db/index.ts`, `scripts/migrate-to-neon.ts`
+
+- **Migration Management Scripts**:
+  - Added `db:mark-applied` script to mark existing migrations as applied
+  - Created `scripts/mark-migrations-applied.sql` for manual SQL execution
+  - Created `scripts/mark-migrations-simple.js` for cross-platform migration marking
+  - Location: `scripts/mark-migrations-applied.ts`, `scripts/mark-migrations-applied.sql`, `scripts/mark-migrations-simple.js`
+
+- **Cross-Platform Build Script**:
+  - Replaced bash script with Node.js `scripts/db-sync.js` for Windows compatibility
+  - Handles database migration with automatic fallback to `db:push`
+  - Location: `scripts/db-sync.js`, `package.json`
+
+### Changed
+
+#### Database Configuration
+
+- **Environment Variable Priority**: Fixed dotenv loading order to prioritize `.env.local` over `.env`
+  - `.env.local` now loads first with `override: true` to ensure it takes precedence
+  - Prevents `.env` values from overriding `.env.local` values
+  - Location: `drizzle.config.ts`, `drizzle.env.ts`
+
+- **Database Connection Configuration**:
+  - `DATABASE_URL` is now optional in validation to allow fallback to legacy `DB_*` variables
+  - Legacy `DB_*` variables are now optional when `DATABASE_URL` is set
+  - Runtime check ensures `DATABASE_URL` is required for main application
+  - Location: `src/env.js`, `src/server/db/index.ts`, `drizzle.env.ts`
+
+### Fixed
+
+#### SSL Configuration
+
+- **SSL Support for Non-Neon Databases**: Restored SSL configuration for cloud databases using legacy variables
+  - Added SSL detection for Aiven, AWS RDS, and other cloud providers
+  - Automatically configures SSL certificates from `certs/ca.pem` or `DB_SSL_CA` environment variable
+  - Skips SSL for local databases and Neon (handles SSL automatically)
+  - Location: `drizzle.config.ts`, `scripts/check-users.ts`, `scripts/populate-userhash.ts`, `scripts/set-profile-public.ts`
+
+- **SSL Configuration Duplication**: Fixed duplicate function calls in SSL configuration
+  - Cached `getSslConfig()` result to prevent duplicate log messages
+  - Optimized SSL config evaluation to call function only once
+  - Location: `scripts/check-users.ts`, `scripts/populate-userhash.ts`, `scripts/set-profile-public.ts`
+
+#### Environment Variable Handling
+
+- **Empty String Handling**: Fixed `optional()` function to return `undefined` instead of empty strings
+  - Prevents empty strings from being passed as database credentials
+  - Added explicit checks in `drizzle.config.ts` to handle `undefined` values
+  - Location: `drizzle.env.ts`, `drizzle.config.ts`
+
+- **Fallback Mechanism**: Fixed `DATABASE_URL` validation to allow fallback to legacy variables
+  - Made `DATABASE_URL` optional in `src/env.js` to allow `drizzle-kit` fallback
+  - Added runtime check in `src/server/db/index.ts` to ensure `DATABASE_URL` is set for main app
+  - Location: `src/env.js`, `src/server/db/index.ts`
+
+#### Migration Script Improvements
+
+- **Column Compatibility**: Enhanced migration script to handle schema differences
+  - Only copies columns that exist in both source and target databases
+  - Logs warnings for missing columns instead of failing
+  - Handles sequence resets only for columns that exist in target
+  - Location: `scripts/migrate-to-neon.ts`
+
+- **SSL Certificate Generation**: Skip SSL cert generation for Neon databases
+  - Automatically detects Neon databases and skips certificate generation
+  - Location: `scripts/generate-ssl-cert.js`
+
 ## [0.8.2] - 2025-12-31
 
 ### Added

@@ -5,7 +5,7 @@
 -- Create the migrations tracking table if it doesn't exist
 CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
   id SERIAL PRIMARY KEY,
-  hash text NOT NULL,
+  hash text NOT NULL UNIQUE,
   created_at bigint
 );
 

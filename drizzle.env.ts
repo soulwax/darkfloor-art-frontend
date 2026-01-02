@@ -1,11 +1,11 @@
 // File: drizzle.env.ts
 
-import "dotenv/config";
 import { config as dotenvConfig } from "dotenv";
 
-// Load .env.local explicitly (dotenv/config may not load it by default)
-// This ensures DATABASE_URL from .env.local is available
-dotenvConfig({ path: ".env.local" });
+// Load .env.local FIRST with override: true to ensure it takes precedence
+// Then load .env as fallback. This ensures .env.local has priority.
+dotenvConfig({ path: ".env.local", override: true });
+dotenvConfig(); // Load .env as fallback
 
 // If DATABASE_URL is set, we don't need individual DB credentials
 const useConnectionString = !!process.env.DATABASE_URL;
@@ -17,7 +17,8 @@ const required = (key: string) => {
 };
 
 const optional = (key: string) => {
-  return process.env[key] ?? "";
+  const val = process.env[key];
+  return val && val.trim() !== "" ? val : undefined;
 };
 
 const config = {

@@ -1,6 +1,6 @@
 {
   "name": "songbird-player",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "A modern music streaming and discovery platform with intelligent recommendations, advanced audio features, and a beautiful user interface",
   "private": true,
   "type": "module",
@@ -36,7 +36,7 @@
   ],
   "scripts": {
     "generate:ssl": "node scripts/generate-ssl-cert.js",
-    "prebuild": "npm run generate:ssl && npm run db:generate && bash scripts/db-sync.sh",
+    "prebuild": "npm run generate:ssl && npm run db:generate && node scripts/db-sync.cjs",
     "clean": "rm -rf .next node_modules .turbo dist",
     "clean:win": "rmdir /s /q .next && rmdir /s /q node_modules && rmdir /s /q .turbo && rmdir /s /q dist",
     "build:analyzer": "cross-env ANALYZE=true next build",
@@ -46,7 +46,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:mark-applied": "npx tsx scripts/mark-migrations-applied.ts",
+    "db:mark-applied": "node scripts/mark-migrations-simple.js",
     "copy:changelog": "cp CHANGELOG.md public/CHANGELOG.md",
     "migrate:neon": "npx tsx scripts/migrate-to-neon.ts",
     "predev": "npm run generate:ssl",

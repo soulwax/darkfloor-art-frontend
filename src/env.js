@@ -9,7 +9,7 @@ export const env = createEnv({
     AUTH_DISCORD_ID: z.string(),
     AUTH_DISCORD_SECRET: z.string(),
     NEXTAUTH_URL: z.string().url().optional(),
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z.string().url().optional(), // Optional to allow fallback to legacy DB_* variables
     // Legacy DB variables kept for drizzle.config.ts compatibility (optional)
     DB_ADMIN_USER: z.string().optional(),
     DB_ADMIN_PASSWORD: z.string().optional(),
