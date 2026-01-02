@@ -14,9 +14,13 @@ import drizzleEnv from "./drizzle.env";
 
 // Determine SSL configuration based on database type and certificate availability
 function getSslConfig() {
-  // If DATABASE_URL is set, check it for database type
-  const connectionString = process.env.DATABASE_URL ?? 
-                           `${drizzleEnv.DB_HOST}:${drizzleEnv.DB_PORT}/${drizzleEnv.DB_NAME}`;
+  // Normalize DATABASE_URL to handle empty strings (empty strings should trigger fallback)
+  const rawUrl = process.env.DATABASE_URL?.trim();
+  const databaseUrl = rawUrl && rawUrl.length > 0 ? rawUrl : undefined;
+  
+  // For SSL detection, use DATABASE_URL if available, otherwise use host from legacy variables
+  // We only need the host for detection (checking if it's localhost, neon, cloud, etc.)
+  const connectionString = databaseUrl ?? (drizzleEnv.DB_HOST ?? "");
 
   // Neon handles SSL automatically via connection string
   if (connectionString.includes("neon.tech")) {

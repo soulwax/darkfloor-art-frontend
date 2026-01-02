@@ -64,17 +64,23 @@ function warn(message: string) {
 
 // Get SSL config for a connection string
 function getSslConfig(connectionString: string) {
-  const isCloudDb = 
-    connectionString.includes("aivencloud.com") || 
-    connectionString.includes("rds.amazonaws.com") ||
-    connectionString.includes("neon.tech") ||
-    connectionString.includes("sslmode=");
-
-  if (!isCloudDb && connectionString.includes("localhost")) {
+  // Neon handles SSL automatically via connection string
+  if (connectionString.includes("neon.tech")) {
     return undefined;
   }
 
-  // Try to find CA certificate
+  // Check if it's a cloud database that requires SSL
+  const isCloudDb = 
+    connectionString.includes("aivencloud.com") || 
+    connectionString.includes("rds.amazonaws.com") ||
+    connectionString.includes("sslmode=");
+
+  if (!isCloudDb && connectionString.includes("localhost")) {
+    // Local database - SSL not needed
+    return undefined;
+  }
+
+  // Cloud database - try to find CA certificate
   const possibleCertPaths = [
     path.join(process.cwd(), "certs/ca.pem"),
     path.join(__dirname, "../certs/ca.pem"),
@@ -89,13 +95,6 @@ function getSslConfig(connectionString: string) {
     }
   }
 
-  // For NEON, we can use lenient SSL
-  if (connectionString.includes("neon.tech")) {
-    return {
-      rejectUnauthorized: false,
-    };
-  }
-
   // Fallback: use DB_SSL_CA env var
   if (process.env.DB_SSL_CA) {
     return {
@@ -104,7 +103,10 @@ function getSslConfig(connectionString: string) {
     };
   }
 
-  // Default: lenient SSL for cloud databases
+  // Certificate not found - use lenient SSL with warning
+  console.warn("[Migration] ⚠️  WARNING: Cloud database detected but no CA certificate found!");
+  console.warn("[Migration] ⚠️  Using rejectUnauthorized: false - vulnerable to MITM attacks");
+  console.warn("[Migration] ⚠️  Set DB_SSL_CA environment variable or place your CA certificate at: certs/ca.pem");
   return {
     rejectUnauthorized: false,
   };
