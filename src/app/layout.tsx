@@ -27,6 +27,7 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { getBaseUrl } from "@/utils/getBaseUrl";
 import { TrackContextMenu } from "@/components/TrackContextMenu";
 import { PlaylistContextMenu } from "@/components/PlaylistContextMenu";
+import { RegisterServiceWorker } from "./register-sw";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -41,6 +42,7 @@ export const metadata: Metadata = {
     "Modern music streaming and discovery platform with advanced audio features and visual patterns",
   applicationName: "darkfloor.art",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+  manifest: "/manifest.json",
   openGraph: {
     title: "darkfloor.art",
     description:
@@ -67,6 +69,11 @@ export const metadata: Metadata = {
   other: {
     "format-detection": "telephone=no",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "darkfloor.art",
+  },
 };
 
 export const viewport = {
@@ -89,6 +96,7 @@ export default function RootLayout({
       <body>
         <SuppressExtensionErrors />
         <ElectronStorageInit />
+        <RegisterServiceWorker />
         <ErrorBoundary>
           <SessionProvider>
             <TRPCReactProvider>

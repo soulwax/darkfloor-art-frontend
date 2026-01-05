@@ -1,0 +1,2 @@
+NOTE: You need to create icon-192.png and icon-512.png in the public directory for PWA support.
+These should be square PNG images of your app icon at 192x192px and 512x512px respectively.

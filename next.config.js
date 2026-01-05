@@ -1,13 +1,9 @@
-// File: next.config.js
-
 import "./src/env.js";
+import crypto from "crypto";
 
-// Handle unhandled rejections during build (e.g., _document/_error pages not found in App Router)
 if (typeof process !== "undefined") {
   const originalEmit = process.emit;
-  // @ts-ignore - Overriding process.emit with custom handler for error suppression
   process.emit = function (event, ...args) {
-    // Suppress unhandledRejection events for expected missing pages in App Router
     if (event === "unhandledRejection") {
       const reason = args[0];
       if (
@@ -24,17 +20,14 @@ if (typeof process !== "undefined") {
           errorText.includes("_error") ||
           errorText.includes("PageNotFoundError")
         ) {
-          // These are expected in App Router - suppress the error
-          return false; // Prevent default handling
+          return false;
         }
       }
     }
-    // @ts-ignore - TypeScript can't infer the correct overload signature
     return originalEmit.apply(process, [event, ...args]);
   };
 
   process.on("unhandledRejection", (reason, promise) => {
-    // Suppress page not found errors for Pages Router files in App Router (expected behavior)
     if (
       reason &&
       typeof reason === "object" &&
@@ -49,11 +42,9 @@ if (typeof process !== "undefined") {
         errorText.includes("_error") ||
         errorText.includes("PageNotFoundError")
       ) {
-        // These are expected in App Router - _document, _error, and other _ prefixed pages are not needed
         return;
       }
     }
-    // Log other unhandled rejections for debugging
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
   });
 }
@@ -62,43 +53,105 @@ if (typeof process !== "undefined") {
 const config = {
   reactStrictMode: true,
 
-  // Standalone output for both Electron and Vercel (optimized builds)
   output: "standalone",
-  // Electron runs a bundled Next.js server with standalone output
-  // Vercel also benefits from standalone mode for optimized bundle size
 
-  // Production optimizations
-  poweredByHeader: false, // Remove X-Powered-By header for security
-  compress: true, // Enable gzip compression
+  poweredByHeader: false,
+  compress: true,
 
-  // Skip TypeScript type checking during build (types are checked separately)
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // Skip ESLint during build
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // Optimize production builds
-  productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundle
+  productionBrowserSourceMaps: false,
 
-  // Experimental features for better performance
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, max-age=0",
+          },
+        ],
+      },
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
+
   experimental: {
-    // Optimize package imports
     optimizePackageImports: [
       "lucide-react",
       "framer-motion",
       "@tanstack/react-query",
       "@trpc/client",
       "@trpc/react-query",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "next-auth",
     ],
+    webpackBuildWorker: true,
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
   },
-  // Turbopack configuration (Next.js 15.3.0+)
-  // This configures Turbopack when using --turbo flag in development
-  turbopack: {
-  },
+
+  turbopack: {},
+
   images: {
     remotePatterns: [
       {
@@ -132,13 +185,14 @@ const config = {
         pathname: "/**",
       },
     ],
-    unoptimized: process.env.ELECTRON_BUILD === "true", // Required for Electron
+    unoptimized: process.env.ELECTRON_BUILD === "true",
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
-  // Webpack configuration (only used when not using Turbopack)
-  // When using --turbo flag, this config is ignored and Turbopack is used instead
-  // The warning about webpack config with Turbopack is informational and harmless
+
   webpack: (config, { isServer }) => {
-    // Suppress warnings/errors for Pages Router files that don't exist in App Router
     if (isServer) {
       config.ignoreWarnings = [
         ...(config.ignoreWarnings || []),
@@ -152,13 +206,68 @@ const config = {
         },
       ];
     }
+
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: "deterministic",
+      splitChunks: {
+        chunks: "all",
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          framework: {
+            name: "framework",
+            chunks: "all",
+            test: /(?<!node_modules.*)[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+            priority: 40,
+            enforce: true,
+          },
+          lib: {
+            test(module) {
+              return (
+                module.size() > 160000 &&
+                /node_modules[/\\]/.test(module.identifier())
+              );
+            },
+            name(module) {
+              const hash = crypto
+                .createHash("sha1")
+                .update(module.identifier())
+                .digest("hex")
+                .substring(0, 8);
+              return `lib-${hash}`;
+            },
+            priority: 30,
+            minChunks: 1,
+            reuseExistingChunk: true,
+          },
+          commons: {
+            name: "commons",
+            minChunks: 2,
+            priority: 20,
+          },
+          shared: {
+            name(module, chunks) {
+              return `shared-${crypto
+                .createHash("sha1")
+                .update(chunks.map((c) => c.name).join("_"))
+                .digest("hex")
+                .substring(0, 8)}`;
+            },
+            priority: 10,
+            minChunks: 2,
+            reuseExistingChunk: true,
+          },
+        },
+      },
+    };
+
     return config;
   },
-  // Suppress build errors for expected missing pages in App Router
-  // Improved memory management: less aggressive settings to prevent request timeouts
+
   onDemandEntries: {
-    maxInactiveAge: 60 * 1000, // Increased from 25s to 60s - pages stay in memory longer
-    pagesBufferLength: 5, // Increased from 2 to 5 - more pages buffered to reduce re-renders
+    maxInactiveAge: 60 * 1000,
+    pagesBufferLength: 5,
   },
 };
 

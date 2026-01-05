@@ -413,6 +413,157 @@ DB_SSL_CA=                      # PostgreSQL SSL CA certificate path (PEM format
 - **Formatting:** `npm run format:write` - Prettier with Tailwind plugin
 - **Manual testing:** Test responsive breakpoints, audio playback, and mobile gestures
 
+## Performance & Security Optimizations
+
+### Production Build Optimizations
+
+**Next.js Configuration ([next.config.js](next.config.js)):**
+- `swcMinify: true` - Fast Rust-based minification
+- `compress: true` - Gzip compression enabled
+- `productionBrowserSourceMaps: false` - Smaller bundle size
+- `removeConsole` - Remove console.log in production (keeps error/warn)
+- Aggressive code splitting with custom webpack optimization
+- Module IDs: deterministic for better caching
+- Advanced split chunks configuration for framework, libraries, and shared code
+
+**Image Optimization:**
+- AVIF and WebP format support
+- Optimized device sizes and image sizes
+- Minimum cache TTL: 60 seconds
+- Lazy loading for all images
+
+**Package Optimization:**
+- Tree-shaking for lucide-react, framer-motion, @tanstack/react-query, @trpc/*
+- Webpack build worker enabled for faster builds
+- CSS optimization enabled
+
+### Security Headers
+
+**Comprehensive HTTP Security Headers:**
+- `Strict-Transport-Security` - Force HTTPS with HSTS preload
+- `X-Frame-Options: SAMEORIGIN` - Prevent clickjacking
+- `X-Content-Type-Options: nosniff` - Prevent MIME sniffing
+- `X-XSS-Protection` - Enable XSS filter
+- `Referrer-Policy: strict-origin-when-cross-origin` - Control referrer information
+- `Permissions-Policy` - Disable camera, microphone, geolocation
+- `Content-Security-Policy` - Comprehensive CSP with nonce-based script execution
+
+**Caching Strategy:**
+- API routes: `no-store, max-age=0` (always fresh)
+- Static assets: `public, max-age=31536000, immutable` (1 year cache)
+
+### Rate Limiting & API Security
+
+**Middleware Protection ([src/middleware.ts](src/middleware.ts)):**
+- Rate limiting: 100 requests per 60 seconds per IP
+- Automatic IP detection from X-Forwarded-For header
+- Returns 429 status with Retry-After header when exceeded
+- Memory-efficient rate limit tracking with automatic cleanup
+- CSP headers for all non-API routes
+- Additional security headers for API routes
+
+### Progressive Web App (PWA)
+
+**Service Worker ([public/sw.js](public/sw.js)):**
+- Offline support with intelligent caching strategy
+- Static asset caching for instant loads
+- Dynamic content caching (max 50 items)
+- Cache-first strategy for static resources
+- Network-first strategy for API calls
+- Graceful offline fallbacks
+
+**Web App Manifest ([public/manifest.json](public/manifest.json)):**
+- Installable as standalone app
+- Custom app icons (192x192, 512x512)
+- Theme color and background color
+- App shortcuts for quick actions (Search, Library)
+- Proper categorization for app stores
+
+**Apple Web App Support:**
+- `apple-web-app-capable: true`
+- Status bar styling for iOS
+- Custom title for home screen
+
+### Database Performance
+
+**Indexed Columns:**
+- User queries: `userId` indexes on all user-related tables
+- Search optimization: `query` index on search_history
+- Time-based queries: `createdAt`, `playedAt`, `searchedAt` indexes
+- Composite indexes for common query patterns:
+  - `favorite_user_track_idx` (userId, trackId)
+  - `history_user_played_idx` (userId, playedAt)
+  - `playlist_track_position_idx` (playlistId, position)
+
+**Query Optimization:**
+- Unique constraints to prevent duplicates
+- Cascade deletions for data integrity
+- JSONB for flexible track data storage
+- Efficient joins with proper foreign keys
+
+### Performance Monitoring
+
+**Utilities ([src/utils/performance.ts](src/utils/performance.ts)):**
+- `measurePerformance()` - Sync function performance tracking
+- `measureAsyncPerformance()` - Async function performance tracking
+- `reportWebVitals()` - Core Web Vitals monitoring
+- `getMemoryUsage()` - JavaScript heap usage tracking
+- Development-only logging (removed in production)
+
+**Usage Example:**
+```tsx
+import { measureAsyncPerformance } from "@/utils/performance";
+
+const data = await measureAsyncPerformance("fetchTracks", async () => {
+  return await api.music.searchTracks.query({ query: "jazz" });
+});
+```
+
+### Bundle Optimization
+
+**Code Splitting:**
+- Route-based automatic code splitting
+- Dynamic imports for heavy components (Equalizer, Queue, MobilePlayer)
+- Lazy loading for visualizers
+- Framework chunks separated from application code
+- Large libraries (>160KB) split into separate chunks
+
+**Tree Shaking:**
+- ES modules for all code
+- No unused exports
+- Minimal barrel exports
+- Direct imports where possible
+
+### Security Best Practices
+
+**Input Validation:**
+- Zod schemas for all environment variables
+- tRPC input validation on all endpoints
+- SQL injection prevention via Drizzle ORM parameterized queries
+
+**Authentication Security:**
+- NextAuth v5 with secure session management
+- HTTP-only cookies for session tokens
+- CSRF protection built-in
+- Secure password hashing (handled by OAuth providers)
+
+**API Security:**
+- Rate limiting on all API routes
+- Request size limits (2MB max for server actions)
+- No API key exposure (server-side only)
+- Proper CORS configuration
+
+### Performance Checklist
+
+Before deploying:
+- ✅ Run `npm run build` and check bundle size
+- ✅ Test Lighthouse score (aim for 90+ on all metrics)
+- ✅ Verify service worker registration in production
+- ✅ Check Network tab for proper caching headers
+- ✅ Test rate limiting with rapid requests
+- ✅ Verify CSP headers don't block legitimate resources
+- ✅ Test PWA installation on mobile devices
+
 ## Server Architecture (Custom Server Script)
 
 The application uses a **custom Node.js server wrapper** (`scripts/server.js`) that provides enhanced logging, build validation, and startup configuration:
