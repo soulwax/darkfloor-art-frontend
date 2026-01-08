@@ -244,6 +244,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Maintains smooth single-page application experience
   - Location: `src/components/Header.tsx:58-78`
 
+- **Playlist Page UI**: Converted text buttons to icon-only circular buttons for cleaner design
+  - Play All: Play icon in primary button
+  - Make Private/Public: Lock/Unlock icons in secondary button
+  - Save Changes: Save icon in primary button (only visible when changes are made)
+  - Share: Share2 icon in secondary button (only visible for public playlists)
+  - Delete Playlist: Trash icon in danger button
+  - All buttons are 44×44px circular with tooltips on hover
+  - Loading states show spinner icon for visibility toggle and save operations
+  - Maintains full accessibility with aria-labels and title attributes
+  - Location: `src/app/playlists/[id]/page.tsx:397-467`
+
 - **Electron Discord OAuth**: Fixed black screen when logging into Discord in Electron app
   - Added proper navigation handlers for OAuth flows (`will-navigate`, `did-navigate`, `setWindowOpenHandler`)
   - Discord OAuth URLs now properly open and redirect back to the app

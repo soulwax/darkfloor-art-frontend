@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Play, Lock, Unlock, Save, Share2, Trash2 } from "lucide-react";
 
 export default function PlaylistDetailPage() {
   const params = useParams<{ id: string }>();
@@ -393,65 +394,59 @@ export default function PlaylistDetailPage() {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-4">
+          <div className="mt-6 flex items-center gap-3">
             <button
               onClick={handlePlayAll}
-              className="btn-primary flex items-center gap-2"
+              className="btn-primary flex h-11 w-11 items-center justify-center rounded-full p-0"
               disabled={!playlist.tracks || playlist.tracks.length === 0}
+              title="Play All"
+              aria-label="Play All"
             >
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Play All
+              <Play className="h-5 w-5" />
             </button>
 
             {isOwner && (
               <button
                 onClick={handleToggleVisibility}
-                className="btn-secondary flex items-center gap-2 text-sm"
+                className="btn-secondary flex h-11 w-11 items-center justify-center rounded-full p-0"
                 disabled={updateVisibilityMutation.isPending}
+                title={effectiveIsPublic ? "Make Private" : "Make Public"}
+                aria-label={effectiveIsPublic ? "Make Private" : "Make Public"}
               >
-                {updateVisibilityMutation.isPending
-                  ? "Updating..."
-                  : effectiveIsPublic
-                    ? "Make Private"
-                    : "Make Public"}
+                {updateVisibilityMutation.isPending ? (
+                  <div className="spinner spinner-sm h-5 w-5" />
+                ) : effectiveIsPublic ? (
+                  <Unlock className="h-5 w-5" />
+                ) : (
+                  <Lock className="h-5 w-5" />
+                )}
               </button>
             )}
 
             {isOwner && (
               <button
                 onClick={handleSaveMetadata}
-                className="btn-primary flex items-center gap-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-primary flex h-11 w-11 items-center justify-center rounded-full p-0 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={!isDirty || isSavingMetadata}
+                title="Save Changes"
+                aria-label="Save Changes"
               >
-                {isSavingMetadata ? "Saving..." : "Save Changes"}
+                {isSavingMetadata ? (
+                  <div className="spinner spinner-sm h-5 w-5" />
+                ) : (
+                  <Save className="h-5 w-5" />
+                )}
               </button>
             )}
 
             {effectiveIsPublic && (
               <button
                 onClick={handleSharePlaylist}
-                className="btn-secondary flex items-center gap-2 text-sm"
+                className="btn-secondary flex h-11 w-11 items-center justify-center rounded-full p-0"
+                title={copiedLink ? "Copied!" : "Share"}
+                aria-label="Share Playlist"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-                {copiedLink ? "Copied!" : "Share"}
+                <Share2 className="h-5 w-5" />
               </button>
             )}
 
@@ -462,9 +457,11 @@ export default function PlaylistDetailPage() {
                     deletePlaylist.mutate({ id: playlistId });
                   }
                 }}
-                className="btn-danger"
+                className="btn-danger flex h-11 w-11 items-center justify-center rounded-full p-0"
+                title="Delete Playlist"
+                aria-label="Delete Playlist"
               >
-                Delete Playlist
+                <Trash2 className="h-5 w-5" />
               </button>
             )}
           </div>
