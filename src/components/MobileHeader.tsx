@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import MobileSearchBar from "@/components/MobileSearchBar";
@@ -22,6 +22,9 @@ export default function MobileHeader() {
   const { isMenuOpen, toggleMenu } = useMenu();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: recentSearches } = api.music.getRecentSearches.useQuery(
     { limit: 5 },
@@ -35,19 +38,90 @@ export default function MobileHeader() {
     }
   }, [searchParams]);
 
+  // Debounced search: search every 2 seconds while typing
+  useEffect(() => {
+    // Clear existing timeout and countdown
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+
+    // If query is empty, clear search immediately
+    if (!searchQuery.trim()) {
+      setCountdown(0);
+      router.push("/");
+      return;
+    }
+
+    // Reset countdown to 2000ms
+    setCountdown(2000);
+
+    // Update countdown every 100ms for smooth animation
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        const newValue = Math.max(0, prev - 100);
+        if (newValue === 0) {
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+          }
+        }
+        return newValue;
+      });
+    }, 100);
+
+    // Set new timeout for 2 seconds
+    searchTimeoutRef.current = setTimeout(() => {
+      setIsSearching(true);
+      setCountdown(0);
+      router.push(`/?q=${encodeURIComponent(searchQuery.trim())}`);
+      setTimeout(() => setIsSearching(false), 500);
+    }, 2000);
+
+    // Cleanup on unmount or query change
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, [searchQuery, router]);
+
   if (!isMobile) return null;
 
   const handleSearch = (query: string) => {
+    // Clear debounce timeout and countdown
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    setCountdown(0);
+
     if (query.trim()) {
       setIsSearching(true);
-      router.push(`/?q=${encodeURIComponent(query)}`);
+      router.push(`/?q=${encodeURIComponent(query.trim())}`);
       setTimeout(() => setIsSearching(false), 500);
+    } else {
+      router.push("/");
     }
   };
 
   const handleClear = () => {
+    // Clear debounce timeout and countdown
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    setCountdown(0);
     setSearchQuery("");
-    router.push("/");
+    // Navigation is handled by useEffect when searchQuery becomes empty
   };
 
   return (
@@ -114,6 +188,8 @@ export default function MobileHeader() {
               setSearchQuery(search);
               handleSearch(search);
             }}
+            showAutoSearchIndicator={true}
+            autoSearchCountdown={countdown}
           />
         </div>
       </div>

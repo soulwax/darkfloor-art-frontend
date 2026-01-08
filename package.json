@@ -1,10 +1,10 @@
 {
   "name": "songbird-player",
-  "version": "0.8.4",
+  "version": "0.8.8",
   "description": "A modern music streaming and discovery platform with intelligent recommendations, advanced audio features, and a beautiful user interface",
   "private": true,
   "type": "module",
-  "email": "Christian / soulwax@github",
+  "email": "soulwax@madtec.org",
   "author": "Christian",
   "license": "GPLv3",
   "homepage": "https://darkfloor.art",

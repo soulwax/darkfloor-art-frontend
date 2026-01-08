@@ -35,7 +35,7 @@ interface MenuItem {
 export default function HamburgerMenu() {
   const { isMenuOpen, closeMenu } = useMenu();
   const { data: session } = useSession();
-  const { data: userProfile } = api.music.getCurrentUserProfile.useQuery(
+  const { data: userHash } = api.music.getCurrentUserHash.useQuery(
     undefined,
     { enabled: !!session },
   );
@@ -73,9 +73,11 @@ export default function HamburgerMenu() {
       label: session ? "Profile" : "Sign In",
       icon: <User className="h-5 w-5" />,
       path:
-        session && userProfile?.userHash
-          ? `/${userProfile.userHash}`
-          : "/api/auth/signin",
+        session && userHash
+          ? `/${userHash}`
+          : session
+            ? "#" // Placeholder while userHash loads - preventDefault() handles navigation
+            : "/api/auth/signin",
       dividerAfter: !session,
     },
     {
@@ -178,10 +180,17 @@ export default function HamburgerMenu() {
                   {item.path ? (
                     <Link
                       href={item.path}
-                      onClick={() => {
+                      onClick={(e) => {
+                        // Prevent navigation if profile link is clicked but userHash isn't loaded yet
+                        if (item.id === "profile" && session && !userHash) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return;
+                        }
                         hapticLight();
                         closeMenu();
                       }}
+                      className={item.id === "profile" && session && !userHash ? "pointer-events-none opacity-50" : ""}
                     >
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}

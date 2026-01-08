@@ -3,10 +3,10 @@
 "use client";
 
 import type { Track } from "@/types";
-import { hapticLight } from "@/utils/haptics";
+import { hapticLight, hapticMedium } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
+import { motion, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { AutoQueueBadge } from "./AutoQueueBadge";
 
 interface MiniPlayerProps {
@@ -35,6 +35,12 @@ export default function MiniPlayer({
   onTap,
 }: MiniPlayerProps) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const dragY = useMotionValue(0);
+  const opacity = useTransform(dragY, [0, -50], [1, 0.85]);
+  const scale = useTransform(dragY, [0, -50], [1, 0.96]);
+  
+  // Visual feedback: show hint when dragging up
+  const swipeHintOpacity = useTransform(dragY, [0, -20, -50], [0, 1, 1]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -72,6 +78,24 @@ export default function MiniPlayer({
     }
     hapticLight();
     onTap();
+  };
+
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo,
+  ) => {
+    const offset = info.offset.y;
+    const velocity = info.velocity.y;
+
+    // Very low threshold for easier swipe-up: 20px or velocity > 150
+    // This makes it much easier to pop up the player
+    if (offset < -20 || velocity < -150) {
+      hapticMedium();
+      onTap();
+    }
+    
+    // Reset drag position
+    dragY.set(0);
   };
 
   return (
@@ -130,9 +154,26 @@ export default function MiniPlayer({
       <motion.div
         className="flex cursor-pointer items-center gap-4 px-5 py-4 relative group"
         onTap={handleContainerTap}
+        drag="y"
+        dragConstraints={{ top: -80, bottom: 0 }}
+        dragElastic={{ top: 0.5, bottom: 0 }}
+        onDragEnd={handleDragEnd}
+        style={{ y: dragY, opacity, scale }}
         whileTap={{ scale: 0.99 }}
         transition={springPresets.snappy}
       >
+        {}
+        <motion.div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ opacity: swipeHintOpacity }}
+        >
+          <div className="bg-[var(--color-accent)]/30 backdrop-blur-md px-5 py-2.5 rounded-full border-2 border-[var(--color-accent)]/50 shadow-lg">
+            <span className="text-xs font-bold text-[var(--color-accent)] uppercase tracking-wider">
+              Swipe Up to Expand
+            </span>
+          </div>
+        </motion.div>
+        
         {}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-active:opacity-100 transition-opacity pointer-events-none">
           <div className="bg-[var(--color-accent)]/20 backdrop-blur-sm px-4 py-2 rounded-full border border-[var(--color-accent)]/30">

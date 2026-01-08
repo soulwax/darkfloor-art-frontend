@@ -165,20 +165,20 @@ export default function MobilePlayer(props: MobilePlayerProps) {
     );
   };
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     hapticMedium();
     onPlayPause();
-  };
+  }, [onPlayPause]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     hapticLight();
     onNext();
-  };
+  }, [onNext]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     hapticLight();
     onPrevious();
-  };
+  }, [onPrevious]);
 
   const handleToggleShuffle = () => {
     hapticLight();
@@ -720,35 +720,48 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 <div className="flex items-center justify-center gap-6 px-8 pb-6">
                   {}
                   <motion.button
-                    onClick={handleToggleShuffle}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleToggleShuffle();
+                    }}
                     whileTap={{ scale: 0.9 }}
                     className={`touch-target rounded-full p-3 transition-colors ${
                       isShuffled
                         ? "text-[var(--color-accent)]"
                         : "text-[var(--color-subtext)]"
                     }`}
+                    aria-label={isShuffled ? "Disable shuffle" : "Enable shuffle"}
                   >
                     <Shuffle className="h-5 w-5" />
                   </motion.button>
 
                   {}
                   <motion.button
-                    onClick={handlePrevious}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlePrevious();
+                    }}
                     whileTap={{ scale: 0.9 }}
                     className="touch-target-lg text-[var(--color-text)]"
+                    aria-label="Previous track"
                   >
                     <SkipBack className="h-8 w-8 fill-current" />
                   </motion.button>
 
                   {}
                   <motion.button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       hapticLight();
                       onSkipBackward();
                     }}
                     whileTap={{ scale: 0.9 }}
                     className="touch-target text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
                     title="Skip backward 10s"
+                    aria-label="Skip backward 10 seconds"
                   >
                     <svg
                       className="h-6 w-6"
@@ -767,27 +780,38 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                   {}
                   <motion.button
-                    onClick={handlePlayPause}
-                    whileTap={{ scale: 0.9 }}
-                    className="flex h-18 w-18 items-center justify-center rounded-full bg-[var(--color-text)] text-[#0f141d] shadow-[0_8px_32px_rgba(244,178,102,0.4)]"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlePlayPause();
+                    }}
+                    whileTap={{ scale: 0.92 }}
+                    whileHover={{ scale: 1.05 }}
+                    className="relative flex h-18 w-18 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-text)] to-[var(--color-accent)] text-[#0f141d] shadow-[0_8px_32px_rgba(244,178,102,0.5)] ring-2 ring-[var(--color-accent)]/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ width: 72, height: 72 }}
+                    aria-label={isPlaying ? "Pause track" : "Play track"}
+                    disabled={isLoading}
                   >
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
                     {isPlaying ? (
-                      <Pause className="h-8 w-8 fill-current" />
+                      <Pause className="relative h-8 w-8 fill-current" />
                     ) : (
-                      <Play className="ml-1 h-8 w-8 fill-current" />
+                      <Play className="relative ml-0.5 h-8 w-8 fill-current" />
                     )}
                   </motion.button>
 
                   {}
                   <motion.button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       hapticLight();
                       onSkipForward();
                     }}
                     whileTap={{ scale: 0.9 }}
                     className="touch-target text-[var(--color-subtext)] transition-colors hover:text-[var(--color-text)]"
                     title="Skip forward 10s"
+                    aria-label="Skip forward 10 seconds"
                   >
                     <svg
                       className="h-6 w-6"
@@ -806,23 +830,41 @@ export default function MobilePlayer(props: MobilePlayerProps) {
 
                   {}
                   <motion.button
-                    onClick={handleNext}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (queue.length > 0) {
+                        handleNext();
+                      }
+                    }}
                     disabled={queue.length === 0}
                     whileTap={{ scale: 0.9 }}
-                    className="touch-target-lg text-[var(--color-text)] disabled:opacity-40"
+                    className="touch-target-lg text-[var(--color-text)] disabled:opacity-40 disabled:cursor-not-allowed"
+                    aria-label="Next track"
                   >
                     <SkipForward className="h-8 w-8 fill-current" />
                   </motion.button>
 
                   {}
                   <motion.button
-                    onClick={handleCycleRepeat}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCycleRepeat();
+                    }}
                     whileTap={{ scale: 0.9 }}
                     className={`touch-target rounded-full p-3 transition-colors ${
                       repeatMode !== "none"
                         ? "text-[var(--color-accent)]"
                         : "text-[var(--color-subtext)]"
                     }`}
+                    aria-label={
+                      repeatMode === "none"
+                        ? "Enable repeat"
+                        : repeatMode === "one"
+                          ? "Repeat one (click to repeat all)"
+                          : "Repeat all (click to disable)"
+                    }
                   >
                     {repeatMode === "one" ? (
                       <Repeat1 className="h-5 w-5" />
@@ -836,9 +878,14 @@ export default function MobilePlayer(props: MobilePlayerProps) {
                 <div className="flex items-center justify-around border-t border-[rgba(255,255,255,0.08)] px-8 py-4">
                   {}
                   <motion.button
-                    onClick={onToggleMute}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onToggleMute();
+                    }}
                     whileTap={{ scale: 0.9 }}
                     className="touch-target text-[var(--color-subtext)]"
+                    aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
                   >
                     {isMuted || volume === 0 ? (
                       <VolumeX className="h-5 w-5" />

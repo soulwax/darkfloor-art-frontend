@@ -5,7 +5,155 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.4] - 2026-01-05
+## [0.8.8] - 2026-01-08
+
+### Fixed
+
+- **Smooth Circular Progress Animation**: Fixed choppy countdown indicator animation in mobile search bar
+  - Changed from `style={{ strokeDashoffset: ... }}` to `animate={{ strokeDashoffset: ... }}` for smooth interpolation
+  - Previously updated in discrete jumps every 100ms (matching countdown interval frequency)
+  - Now uses Framer Motion's `animate` prop for smooth interpolation between values, matching the progress bar pattern
+  - Provides consistent and fluid visual feedback during search countdown
+  - Location: `src/components/MobileSearchBar.tsx:270-283`
+
+- **Progress Bar Direction**: Fixed backwards progress bar animation in mobile search countdown
+  - Progress bar was emptying instead of filling as countdown progressed
+  - Added `elapsedProgress` calculation that inverts countdown: `(1 - autoSearchCountdown / 2000) * 100`
+  - Progress bar now correctly fills from 0% to 100% as time elapses (intuitive UX)
+  - Circular indicator still uses `countdownProgress` (remaining time) which is correct for that visualization
+  - Location: `src/components/MobileSearchBar.tsx:200-202, 324`
+
+- **Profile Link Navigation**: Fixed unwanted page scrolling when profile link clicked before userHash loads
+  - Changed `href="#"` to `href="javascript:void(0)"` when userHash is loading
+  - Prevents browser from navigating to page anchor and causing unexpected scrolling
+  - Works in conjunction with existing `preventDefault()` and `pointer-events-none` for complete protection
+  - Location: `src/components/HamburgerMenu.tsx:75-80`
+
+### Improved
+
+- **Elegant Play Button Design**: Enhanced mobile player Play/Pause button with premium styling
+  - Added gradient background: `bg-gradient-to-br from-[var(--color-text)] to-[var(--color-accent)]`
+  - Added subtle ring border: `ring-2 ring-[var(--color-accent)]/20` for elegant accent
+  - Enhanced shadow with increased opacity (0.4 → 0.5) for better depth
+  - Added glossy overlay effect with white gradient (`from-white/10 to-transparent`)
+  - Improved hover animation: `whileHover={{ scale: 1.05 }}` for interactive feedback
+  - Smoother tap animation: adjusted scale from 0.9 to 0.92
+  - Better icon centering: adjusted Play icon margin from `ml-1` to `ml-0.5`
+  - Added smooth transitions: `transition-all duration-300`
+  - Enhanced disabled state styling with proper opacity and cursor
+  - Location: `src/components/MobilePlayer.tsx:782-799`
+
+## [0.8.7] - 2026-01-08
+
+### Fixed
+
+- **SVG Animation Conflict in Search Countdown**: Fixed conflicting animation mechanisms in circular progress indicator
+  - Removed incompatible `pathLength` animation that conflicted with `strokeDashoffset`
+  - Now uses only `strokeDashoffset` animated via Framer Motion's style prop for consistent circular progress animation
+  - Prevents unpredictable rendering behavior and visual glitches
+  - Location: `src/components/MobileSearchBar.tsx:270-283`
+
+## [0.8.6] - 2026-01-08
+
+### Added
+
+#### Device Support
+
+- **iPhone 17 Pro Max Support**: Added optimized CSS media queries for iPhone 17 Pro Max (1320×2868 pixels)
+  - Enhanced header height (64px) and player height (92px) for larger display
+  - Increased artwork size to 450px for better visual presentation
+  - Optimized padding and spacing for extra-tall screen aspect ratio
+  - Location: `src/styles/globals.css:1670-1701`
+
+### Fixed
+
+- **Profile Link in Hamburger Menu**: Fixed broken profile link for authenticated users
+  - Switched from `getCurrentUserProfile` to `getCurrentUserHash` query for more reliable data fetching
+  - Fixed incorrect `href` value: when user is logged in but `userHash` is still loading, the link now uses `"#"` placeholder instead of incorrectly pointing to `/api/auth/signin`
+  - Added proper loading state handling with disabled styling and navigation prevention
+  - Prevents authenticated users from being redirected to sign-in page while profile loads
+  - Location: `src/components/HamburgerMenu.tsx:35-41, 71-80, 179-190`
+
+- **Mobile Search Countdown Bug**: Fixed countdown indicator continuing to animate after manual search submission
+  - When user submits search manually via Enter key, `handleSearch()` now properly clears both the debounce timeout and countdown interval
+  - Countdown state is reset to 0 when search is submitted manually or cleared
+  - Prevents countdown indicator from animating in the background after search completion
+  - Location: `src/components/MobileHeader.tsx:95-112, 114-125`
+
+- **Mobile Player Button Controls**: Fixed audio control buttons in mobile player
+  - Added proper event handling with `preventDefault()` and `stopPropagation()` to prevent event bubbling
+  - Wrapped handlers in `useCallback` for better performance
+  - Added proper disabled states and visual feedback
+  - Enhanced accessibility with proper `aria-label` attributes
+  - Location: `src/components/MobilePlayer.tsx:168-191, 720-876`
+
+### Improved
+
+- **Profile Link UX**: Better user experience for profile navigation
+  - Visual feedback (reduced opacity) when profile link is loading
+  - Prevents accidental navigation to sign-in page for authenticated users
+  - Smooth transition when `userHash` becomes available
+
+- **Mobile Player Controls**: Enhanced button functionality and accessibility
+  - All buttons now have consistent event handling
+  - Proper disabled states with visual feedback
+  - Better haptic feedback on all button presses
+
+## [0.8.5] - 2026-01-08
+
+### Added
+
+#### Mobile Settings Page
+
+- **Spotify-Like Settings Interface**: Comprehensive mobile settings page with intuitive design
+  - Settings sections: Playback, Audio, Visual, Smart Queue, Account
+  - Toggle switches with haptic feedback for boolean settings
+  - Sliders for volume and playback speed with real-time value display
+  - Select dropdowns for repeat mode, equalizer presets, visualizer types, and similarity preferences
+  - Real-time sync with audio player state
+  - Toast notifications for save success/errors
+  - Authentication check with redirect to sign-in if not logged in
+  - Location: `src/app/settings/page.tsx`
+  - Accessible via hamburger menu (Settings link)
+
+#### Mobile Player Improvements
+
+- **Enhanced Swipe-Up Gesture**: Made mobile player pop up more easily
+  - Lowered swipe threshold from 30px to 20px for easier triggering
+  - Reduced velocity threshold from 200 to 150 for quick flicks
+  - Added visual feedback during swipe with opacity and scale transforms
+  - "Swipe Up to Expand" hint appears when dragging up (>20px)
+  - Increased drag elastic to 0.5 for more responsive feel
+  - Medium haptic feedback when player expands via swipe
+  - Location: `src/components/MiniPlayer.tsx`
+
+#### Mobile Search Bar Enhancements
+
+- **Auto-Search with Debounce**: Intelligent search that triggers automatically while typing
+  - 2-second debounce: searches automatically 2 seconds after typing stops
+  - Visual countdown indicator: circular progress in search icon area
+  - Progress bar below input showing countdown progress
+  - Text indicator: "Searching in 2s", "Searching in 1s", "Searching now..."
+  - Countdown resets on each keystroke
+  - Manual search still works via Enter/submit button
+  - Smooth animations with Framer Motion
+  - Location: `src/components/MobileSearchBar.tsx`, `src/components/MobileHeader.tsx`
+
+### Improved
+
+- **Mobile UX**: More intuitive and responsive mobile interactions
+  - Settings page follows Spotify's mobile design patterns
+  - Search bar provides clear visual feedback during typing
+  - Player expansion is easier and more discoverable
+  - Better haptic feedback throughout mobile interface
+
+### Fixed
+
+- **Mobile Search**: Fixed duplicate onSubmit handler in search form
+- **Settings Sync**: Fixed repeat mode selection to properly cycle through modes
+- **Player State**: Settings now sync in real-time with audio player state
+
+## [0.8.4] - 2026-01-07
 
 ### Added - Performance & Security Optimizations 🚀🔒
 

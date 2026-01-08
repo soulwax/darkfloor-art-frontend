@@ -4,15 +4,15 @@
 
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import {
+  hapticError,
   hapticLight,
   hapticMedium,
-  hapticError,
   hapticSuccess,
 } from "@/utils/haptics";
 import { springPresets } from "@/utils/spring-animations";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mic, MicOff, Search, X, Loader2 } from "lucide-react";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2, Mic, MicOff, Search, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface MobileSearchBarProps {
   value: string;
@@ -24,6 +24,8 @@ interface MobileSearchBarProps {
   autoFocus?: boolean;
   recentSearches?: string[];
   onRecentSearchClick?: (search: string) => void;
+  showAutoSearchIndicator?: boolean;
+  autoSearchCountdown?: number;
 }
 
 interface SpeechRecognitionEvent extends Event {
@@ -76,6 +78,8 @@ export default function MobileSearchBar({
   autoFocus = false,
   recentSearches = [],
   onRecentSearchClick,
+  showAutoSearchIndicator = true,
+  autoSearchCountdown = 0,
 }: MobileSearchBarProps) {
   const isMobile = useIsMobile();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -193,6 +197,11 @@ export default function MobileSearchBar({
   const displayValue = isListening ? interimTranscript || value : value;
   const showClear = value.length > 0 && !isLoading;
   const showRecentSearches = isFocused && !value && recentSearches.length > 0;
+  const showAutoSearch = showAutoSearchIndicator && value.trim().length > 0 && !isLoading && !isListening;
+  // countdownProgress represents remaining time (100% = full time, 0% = time's up) - used for circular indicator
+  const countdownProgress = Math.max(0, Math.min(100, (autoSearchCountdown / 2000) * 100));
+  // elapsedProgress represents elapsed time (0% = start, 100% = complete) - used for linear progress bar
+  const elapsedProgress = Math.max(0, Math.min(100, (1 - autoSearchCountdown / 2000) * 100));
 
   return (
     <div className="relative w-full">
@@ -206,33 +215,36 @@ export default function MobileSearchBar({
               : "0 4px 16px rgba(0, 0, 0, 0.2)",
           }}
           transition={springPresets.snappy}
-          className={`flex items-center gap-3 rounded-2xl border bg-[rgba(18,26,38,0.95)] px-4 py-3 backdrop-blur-xl transition-colors ${
+          className={`relative flex items-center gap-3 rounded-2xl border bg-[rgba(18,26,38,0.95)] px-4 py-3 backdrop-blur-xl transition-colors ${
             isFocused
               ? "border-[rgba(244,178,102,0.4)]"
               : "border-[rgba(244,178,102,0.15)]"
-          }`}
+          } ${showAutoSearch ? "pb-6" : ""}`}
         >
           {}
-          <motion.div
-            animate={{
-              scale: isLoading ? 0 : 1,
-              opacity: isLoading ? 0 : 1,
-            }}
-            transition={springPresets.snappy}
-          >
-            <Search
-              className={`h-5 w-5 transition-colors ${
-                isFocused
-                  ? "text-[var(--color-accent)]"
-                  : "text-[var(--color-muted)]"
-              }`}
-            />
-          </motion.div>
+          {!isLoading && !showAutoSearch && (
+            <motion.div
+              animate={{
+                scale: 1,
+                opacity: 1,
+              }}
+              transition={springPresets.snappy}
+            >
+              <Search
+                className={`h-5 w-5 transition-colors ${
+                  isFocused
+                    ? "text-[var(--color-accent)]"
+                    : "text-[var(--color-muted)]"
+                }`}
+              />
+            </motion.div>
+          )}
 
           {}
-          <AnimatePresence>
-            {isLoading && (
+          <AnimatePresence mode="wait">
+            {isLoading ? (
               <motion.div
+                key="loading"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
@@ -240,26 +252,91 @@ export default function MobileSearchBar({
               >
                 <Loader2 className="h-5 w-5 animate-spin text-[var(--color-accent)]" />
               </motion.div>
-            )}
+            ) : showAutoSearch ? (
+              <motion.div
+                key="countdown"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="absolute left-4"
+              >
+                <div className="relative h-5 w-5">
+                  <svg className="h-5 w-5 -rotate-90 transform" viewBox="0 0 20 20">
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      stroke="rgba(244,178,102,0.2)"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                    <motion.circle
+                      cx="10"
+                      cy="10"
+                      r="8"
+                      stroke="var(--color-accent)"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 8}
+                      strokeLinecap="round"
+                      animate={{
+                        strokeDashoffset: 2 * Math.PI * 8 * (1 - countdownProgress / 100),
+                      }}
+                      transition={{ duration: 0.1, ease: "linear" }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Search className="h-3 w-3 text-[var(--color-accent)]" />
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
           </AnimatePresence>
 
           {}
-          <input
-            ref={inputRef}
-            type="text"
-            value={displayValue}
-            onChange={(e) => onChange(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            placeholder={isListening ? "Listening..." : placeholder}
-            autoFocus={autoFocus}
-            className={`min-w-0 flex-1 bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none ${
-              isListening ? "italic" : ""
-            }`}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-          />
+          <div className="min-w-0 flex-1 relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={displayValue}
+              onChange={(e) => onChange(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              placeholder={isListening ? "Listening..." : placeholder}
+              autoFocus={autoFocus}
+              className={`w-full bg-transparent text-base text-[var(--color-text)] placeholder-[var(--color-muted)] outline-none ${
+                isListening ? "italic" : ""
+              }`}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+            {}
+            {showAutoSearch && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="absolute -bottom-5 left-0 right-0"
+              >
+                <div className="flex items-center gap-1.5 text-[10px] text-[var(--color-subtext)]">
+                  <div className="h-1 flex-1 rounded-full bg-[rgba(244,178,102,0.15)] overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-strong)] rounded-full"
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${elapsedProgress}%` }}
+                      transition={{ duration: 0.1, ease: "linear" }}
+                    />
+                  </div>
+                  <span className="whitespace-nowrap font-medium text-[var(--color-accent)]">
+                    {autoSearchCountdown > 0 
+                      ? `Searching in ${Math.ceil(autoSearchCountdown / 1000)}s`
+                      : "Searching now..."}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </div>
 
           {}
           {isMobile && voiceSupported && (
