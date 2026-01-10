@@ -185,17 +185,28 @@ export default function HomePageClient() {
   useEffect(() => {
     const urlQuery = searchParams.get("q");
     const albumId = searchParams.get("album");
+    const trackId = searchParams.get("track");
 
-    if (albumId) {
+    if (trackId) {
+      const trackIdNum = parseInt(trackId, 10);
+      if (!isNaN(trackIdNum) && trackId !== lastTrackIdRef.current) {
+        lastTrackIdRef.current = trackId;
+        setIsInitialized(true);
+        lastUrlQueryRef.current = null;
+        void handleSharedTrack(trackIdNum);
+      }
+    } else if (albumId) {
       const albumIdNum = parseInt(albumId, 10);
       if (!isNaN(albumIdNum)) {
         setIsInitialized(true);
         lastUrlQueryRef.current = null;
+        lastTrackIdRef.current = null;
         void handleAlbumClick(albumIdNum);
       }
     } else if (urlQuery) {
       if (urlQuery !== lastUrlQueryRef.current) {
         lastUrlQueryRef.current = urlQuery;
+        lastTrackIdRef.current = null;
         setQuery(urlQuery);
         setIsInitialized(true);
         void performSearch(urlQuery);
@@ -204,8 +215,9 @@ export default function HomePageClient() {
       if (!isInitialized) {
         setIsInitialized(true);
       }
-      if (lastUrlQueryRef.current !== null) {
+      if (lastUrlQueryRef.current !== null || lastTrackIdRef.current !== null) {
         lastUrlQueryRef.current = null;
+        lastTrackIdRef.current = null;
         setResults([]);
         setTotal(0);
         setCurrentQuery("");
