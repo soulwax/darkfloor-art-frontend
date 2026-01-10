@@ -158,6 +158,30 @@ export default function HomePageClient() {
     [session, addSearchQuery, router],
   );
 
+  const handleSharedTrack = useCallback(
+    async (trackId: number) => {
+      try {
+        console.log("[Shared Track] Loading track:", trackId);
+        const track = await getTrackById(trackId);
+
+        console.log("[Shared Track] Track loaded:", track.title);
+        hapticSuccess();
+
+        player.clearQueue();
+        player.playTrack(track);
+
+        setResults([track]);
+        setTotal(1);
+        setCurrentQuery(`Shared: ${track.title}`);
+        setQuery(`${track.artist.name} - ${track.title}`);
+      } catch (error) {
+        console.error("[Shared Track] Failed to load shared track:", error);
+        hapticLight();
+      }
+    },
+    [player],
+  );
+
   useEffect(() => {
     const urlQuery = searchParams.get("q");
     const albumId = searchParams.get("album");
