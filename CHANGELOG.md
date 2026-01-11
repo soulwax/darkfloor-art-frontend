@@ -5,6 +5,35 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6] - 2026-01-11
+
+### Fixed
+
+- **Settings Profile Link Navigation**: Fixed "View your public profile" link leading to profile not found
+  - Profile link was using `session.user.name` instead of the correct `userHash`
+  - Added `getCurrentUserHash` query to fetch the user's hash from the API
+  - Updated accountSection href to use `userHash` for correct profile navigation
+  - **Impact**: Profile link in settings now correctly navigates to user's public profile
+  - Location: `src/app/settings/page.tsx:58-61, 342`
+
+### Redesigned
+
+- **COMPLETE Settings Page Mobile Redesign**: Total creative overhaul with minimal, elegant aesthetic
+  - **Header**: Clean title and subtitle without gradient badges
+  - **Section Headers**: Minimal uppercase labels with accent icon (no badges or dividers)
+  - **Cards**: Floating style with subtle borders (`border-white/5`) and clean shadows
+  - **Typography**: Consistent 15px labels, 13px descriptions for better readability
+  - **Toggle Switches**: Simple iOS-style toggles with clean accent color (no gradients or scale effects)
+  - **Sliders**: Clean white thumb with accent color fill, subtle shadows
+  - **Dropdowns**: Minimal design with proper z-index and subtle hover states
+  - **Spacing**: Generous padding (px-5 py-4) for better breathing room
+  - **Dividers**: Only between items, removed from last item in each section
+  - **Hover States**: Subtle `bg-white/[0.03]` on hover, `bg-white/5` on active
+  - **Animations**: Reduced delay timing for smoother, less distracting motion
+  - **Overall**: Removed excessive gradients, shadows, and visual noise for a premium, clean aesthetic
+  - **Impact**: Settings page now has a beautiful, minimal, and elegant design
+  - Location: `src/app/settings/page.tsx:361-759`
+
 ## [0.9.5] - 2026-01-10
 
 ### Fixed

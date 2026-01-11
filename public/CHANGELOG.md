@@ -5,6 +5,36 @@ All notable changes to darkfloor.art will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5] - 2026-01-10
+
+### Fixed
+
+- **Mobile Playback Speed Issue**: Fixed audio randomly speeding up on mobile devices after track loads
+  - Root cause: Mobile browsers (Safari/Chrome) asynchronously reset playbackRate after `load()` call
+  - Previous fix only restored playbackRate immediately after `load()`, but before metadata loaded
+  - Added `loadedmetadata` event listener to restore playbackRate AFTER metadata is fully loaded
+  - Event listener uses `{ once: true }` to auto-cleanup and prevent memory leaks
+  - **Impact**: Playback speed now stays consistent at user's chosen rate on mobile browsers
+  - Location: `src/hooks/useAudioPlayer.ts:532-539`
+
+## [0.9.4] - 2026-01-10
+
+### Improved
+
+- **Settings Page Mobile UI Overhaul**: Complete visual redesign of the settings page for mobile devices
+  - Enhanced header with gradient icon badge and refined typography
+  - Beautiful gradient card backgrounds with shadow effects and subtle borders
+  - Section headers with gradient icon badges and divider lines
+  - Improved toggle switches with gradient backgrounds and scale animations
+  - Enhanced sliders with gradient thumbs and glow effects on interaction
+  - Polished select dropdowns with staggered animations and gradient highlights
+  - Better touch targets and active states for all interactive elements
+  - Sign Out button styled with red accent for visual distinction
+  - Consistent spacing, padding, and rounded corners throughout
+  - Smooth whileTap scale animations on all interactive items
+  - **Impact**: Settings page now has a premium, polished feel on mobile devices
+  - Location: `src/app/settings/page.tsx:358-786`
+
 ## [0.9.3] - 2026-01-10
 
 ### Fixed

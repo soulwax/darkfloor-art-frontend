@@ -55,6 +55,11 @@ export default function SettingsPage() {
     { enabled: !!session },
   );
 
+  const { data: userHash } = api.music.getCurrentUserHash.useQuery(
+    undefined,
+    { enabled: !!session },
+  );
+
   const updatePreferences = api.music.updatePreferences.useMutation({
     onSuccess: () => {
       showToast("Settings saved", "success");
@@ -334,9 +339,7 @@ export default function SettingsPage() {
         label: "Profile",
         description: "View your public profile",
         type: "link",
-        href: session?.user?.name
-          ? `/${session.user.name.toLowerCase().replace(/\s+/g, "")}`
-          : "/profile",
+        href: userHash ? `/${userHash}` : "/profile",
       },
       {
         id: "signOut",
@@ -356,55 +359,48 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="container mx-auto flex min-h-screen flex-col px-4 py-6 md:px-6 md:py-8">
+    <div className="container mx-auto flex min-h-screen flex-col px-4 py-8 md:px-6 md:py-10">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={springPresets.gentle}
-        className="mb-6 md:mb-8"
+        className="mb-8 md:mb-10"
       >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[rgba(244,178,102,0.2)] to-[rgba(88,198,177,0.2)] ring-2 ring-[var(--color-accent)]/30">
-            <Settings className="h-6 w-6 text-[var(--color-accent)]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text)] md:text-4xl">
-              Settings
-            </h1>
-            <p className="mt-0.5 text-sm text-[var(--color-subtext)] md:text-base">
-              Customize your experience
-            </p>
-          </div>
-        </div>
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text)] md:text-4xl">
+          Settings
+        </h1>
+        <p className="mt-2 text-sm text-[var(--color-subtext)]">
+          Customize your listening experience
+        </p>
       </motion.div>
 
-      <div className="space-y-4 pb-6 md:space-y-6">
+      <div className="space-y-6 pb-8 md:space-y-8">
         {sections.map((section, sectionIndex) => (
           <motion.div
             key={section.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
               ...springPresets.gentle,
-              delay: sectionIndex * 0.05,
+              delay: sectionIndex * 0.04,
             }}
-            className="group rounded-2xl border border-[rgba(244,178,102,0.15)] bg-gradient-to-br from-[rgba(13,19,28,0.8)] to-[rgba(13,19,28,0.6)] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md transition-all hover:shadow-[0_8px_32px_rgba(244,178,102,0.1)] md:rounded-2xl md:p-5"
           >
-            <div className="mb-4 flex items-center gap-3 border-b border-[rgba(244,178,102,0.08)] pb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[rgba(244,178,102,0.15)] to-[rgba(88,198,177,0.15)] text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]/20">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="text-[var(--color-accent)]">
                 {section.icon}
               </div>
-              <h2 className="text-lg font-bold text-[var(--color-text)] md:text-xl">
+              <h2 className="text-base font-semibold uppercase tracking-wide text-[var(--color-subtext)]">
                 {section.title}
               </h2>
             </div>
 
-            <div className="space-y-1">
+            <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] shadow-lg backdrop-blur-sm">
               {section.items.map((item, itemIndex) => (
                 <SettingsItemComponent
                   key={item.id}
                   item={item}
                   index={itemIndex}
+                  isLast={itemIndex === section.items.length - 1}
                 />
               ))}
             </div>
@@ -418,13 +414,14 @@ export default function SettingsPage() {
 function SettingsItemComponent({
   item,
   index,
+  isLast,
 }: {
   item: SettingsItem;
   index: number;
+  isLast: boolean;
 }) {
   const [localValue, setLocalValue] = useState(item.value);
 
-  // Sync with item.value when it changes
   useEffect(() => {
     setLocalValue(item.value);
   }, [item.value]);
@@ -434,22 +431,25 @@ function SettingsItemComponent({
     item.onChange?.(newValue);
   };
 
+  const borderClass = !isLast ? "border-b border-white/5" : "";
+
   if (item.type === "toggle") {
     return (
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{
           ...springPresets.smooth,
-          delay: index * 0.03,
+          delay: index * 0.02,
         }}
-        whileTap={{ scale: 0.98 }}
-        className="touch-target-lg flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:bg-[rgba(244,178,102,0.15)] md:px-4 md:hover:bg-[rgba(244,178,102,0.08)]"
+        className={`flex items-center justify-between px-5 py-4 transition-colors active:bg-white/5 md:hover:bg-white/[0.03] ${borderClass}`}
       >
-        <div className="flex-1">
-          <div className="text-base font-semibold text-[var(--color-text)]">{item.label}</div>
+        <div className="flex-1 pr-4">
+          <div className="text-[15px] font-medium text-[var(--color-text)]">
+            {item.label}
+          </div>
           {item.description && (
-            <div className="mt-1 text-xs text-[var(--color-subtext)]">
+            <div className="mt-0.5 text-[13px] text-[var(--color-subtext)]">
               {item.description}
             </div>
           )}
@@ -465,20 +465,20 @@ function SettingsItemComponent({
   if (item.type === "slider") {
     return (
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{
           ...springPresets.smooth,
-          delay: index * 0.03,
+          delay: index * 0.02,
         }}
-        className="rounded-xl px-4 py-3.5 transition-colors"
+        className={`px-5 py-4 ${borderClass}`}
       >
         <div className="mb-3 flex items-center justify-between">
-          <div className="text-base font-semibold text-[var(--color-text)]">
+          <div className="text-[15px] font-medium text-[var(--color-text)]">
             {item.label}
           </div>
           {item.description && (
-            <div className="text-base font-bold text-[var(--color-accent)]">
+            <div className="text-[15px] font-semibold text-[var(--color-accent)]">
               {item.description}
             </div>
           )}
@@ -497,39 +497,21 @@ function SettingsItemComponent({
   if (item.type === "select") {
     return (
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{
           ...springPresets.smooth,
-          delay: index * 0.03,
+          delay: index * 0.02,
         }}
+        className={borderClass}
       >
-        {item.href ? (
-          <Link
-            href={item.href}
-            className="flex items-center justify-between rounded-xl px-4 py-3 transition-colors hover:bg-[rgba(244,178,102,0.08)]"
-          >
-            <div className="flex-1">
-              <div className="font-medium text-[var(--color-text)]">
-                {item.label}
-              </div>
-              {item.description && (
-                <div className="mt-0.5 text-xs text-[var(--color-subtext)]">
-                  {item.description}
-                </div>
-              )}
-            </div>
-            <ChevronRight className="h-5 w-5 text-[var(--color-muted)]" />
-          </Link>
-        ) : (
-          <SelectButton
-            label={item.label}
-            description={item.description}
-            value={localValue as string}
-            options={item.options ?? []}
-            onChange={(value) => handleChange(value)}
-          />
-        )}
+        <SelectButton
+          label={item.label}
+          description={item.description}
+          value={localValue as string}
+          options={item.options ?? []}
+          onChange={(value) => handleChange(value)}
+        />
       </motion.div>
     );
   }
@@ -537,29 +519,29 @@ function SettingsItemComponent({
   if (item.type === "link") {
     return (
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{
           ...springPresets.smooth,
-          delay: index * 0.03,
+          delay: index * 0.02,
         }}
-        whileTap={{ scale: 0.98 }}
+        className={borderClass}
       >
         <Link
           href={item.href ?? "#"}
-          className="touch-target-lg flex items-center justify-between rounded-xl px-4 py-3.5 transition-all active:bg-[rgba(244,178,102,0.15)] md:px-4 md:hover:bg-[rgba(244,178,102,0.08)]"
+          className="flex items-center justify-between px-5 py-4 transition-colors active:bg-white/5 md:hover:bg-white/[0.03]"
         >
           <div className="flex-1">
-            <div className="text-base font-semibold text-[var(--color-text)]">
+            <div className="text-[15px] font-medium text-[var(--color-text)]">
               {item.label}
             </div>
             {item.description && (
-              <div className="mt-1 text-xs text-[var(--color-subtext)]">
+              <div className="mt-0.5 text-[13px] text-[var(--color-subtext)]">
                 {item.description}
               </div>
             )}
           </div>
-          <ChevronRight className="h-5 w-5 text-[var(--color-accent)] transition-transform group-hover:translate-x-1" />
+          <ChevronRight className="h-5 w-5 text-[var(--color-subtext)] transition-transform md:group-hover:translate-x-0.5" />
         </Link>
       </motion.div>
     );
@@ -569,26 +551,26 @@ function SettingsItemComponent({
     const isSignOut = item.id === "signOut";
     return (
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{
           ...springPresets.smooth,
-          delay: index * 0.03,
+          delay: index * 0.02,
         }}
-        whileTap={{ scale: 0.98 }}
+        className={borderClass}
       >
         <button
           onClick={item.action}
-          className={`touch-target-lg flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left transition-all ${
+          className={`flex w-full items-center justify-between px-5 py-4 text-left transition-colors ${
             isSignOut
-              ? "active:bg-[rgba(242,139,130,0.2)] md:hover:bg-[rgba(242,139,130,0.12)]"
-              : "active:bg-[rgba(244,178,102,0.15)] md:hover:bg-[rgba(244,178,102,0.08)]"
+              ? "active:bg-red-500/10 md:hover:bg-red-500/5"
+              : "active:bg-white/5 md:hover:bg-white/[0.03]"
           }`}
         >
-          <div className={`text-base font-semibold ${isSignOut ? "text-red-400" : "text-[var(--color-text)]"}`}>
+          <div className={`text-[15px] font-medium ${isSignOut ? "text-red-400" : "text-[var(--color-text)]"}`}>
             {item.label}
           </div>
-          <ChevronRight className={`h-5 w-5 transition-transform ${isSignOut ? "text-red-400/60" : "text-[var(--color-accent)]"}`} />
+          <ChevronRight className={`h-5 w-5 ${isSignOut ? "text-red-400/50" : "text-[var(--color-subtext)]"}`} />
         </button>
       </motion.div>
     );
@@ -607,25 +589,20 @@ function ToggleSwitch({
   return (
     <button
       onClick={() => onChange(!checked)}
-      className={`touch-target relative inline-flex h-8 w-14 items-center rounded-full shadow-inner transition-all ${
+      className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
         checked
-          ? "bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-secondary-accent)] shadow-[var(--color-accent)]/20"
-          : "bg-[rgba(255,255,255,0.15)] shadow-black/20"
+          ? "bg-[var(--color-accent)]"
+          : "bg-white/10"
       }`}
       role="switch"
       aria-checked={checked}
     >
       <motion.div
         animate={{
-          x: checked ? 32 : 4,
-          scale: checked ? 1.1 : 1,
+          x: checked ? 30 : 4,
         }}
         transition={springPresets.snappy}
-        className={`h-6 w-6 rounded-full shadow-lg ring-2 transition-all ${
-          checked
-            ? "bg-white ring-[var(--color-accent)]/30"
-            : "bg-white/90 ring-white/10"
-        }`}
+        className="h-6 w-6 rounded-full bg-white shadow-md"
       />
     </button>
   );
@@ -655,42 +632,40 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="touch-target-lg h-2 w-full appearance-none rounded-full outline-none"
+        className="h-2 w-full appearance-none rounded-full outline-none"
         style={{
           background: `linear-gradient(to right,
             var(--color-accent) 0%,
             var(--color-accent) ${percentage}%,
-            rgba(255,255,255,0.15) ${percentage}%,
-            rgba(255,255,255,0.15) 100%)`,
+            rgba(255,255,255,0.1) ${percentage}%,
+            rgba(255,255,255,0.1) 100%)`,
         }}
       />
       <style jsx>{`
         input[type="range"]::-webkit-slider-thumb {
           appearance: none;
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-secondary-accent) 100%);
+          background: white;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(244, 178, 102, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
-          transition: transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+          transition: transform 0.15s ease;
         }
         input[type="range"]::-webkit-slider-thumb:active {
-          transform: scale(1.2);
-          box-shadow: 0 2px 12px rgba(244, 178, 102, 0.6), 0 0 0 3px rgba(255, 255, 255, 0.15);
+          transform: scale(1.15);
         }
         input[type="range"]::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-secondary-accent) 100%);
+          background: white;
           cursor: pointer;
           border: none;
-          box-shadow: 0 2px 8px rgba(244, 178, 102, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
         input[type="range"]::-moz-range-thumb:active {
-          transform: scale(1.2);
-          box-shadow: 0 2px 12px rgba(244, 178, 102, 0.6), 0 0 0 3px rgba(255, 255, 255, 0.15);
+          transform: scale(1.15);
         }
       `}</style>
     </div>
@@ -716,67 +691,65 @@ function SelectButton({
 
   return (
     <div className="relative">
-      <motion.button
+      <button
         onClick={() => {
           hapticLight();
           setIsOpen(!isOpen);
         }}
-        whileTap={{ scale: 0.98 }}
-        className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 transition-all active:bg-[rgba(244,178,102,0.15)] md:hover:bg-[rgba(244,178,102,0.08)]"
+        className="flex w-full items-center justify-between px-5 py-4 transition-colors active:bg-white/5 md:hover:bg-white/[0.03]"
       >
         <div className="flex-1 text-left">
-          <div className="text-base font-semibold text-[var(--color-text)]">{label}</div>
+          <div className="text-[15px] font-medium text-[var(--color-text)]">
+            {label}
+          </div>
           {description && (
-            <div className="mt-1 text-xs text-[var(--color-subtext)]">
+            <div className="mt-0.5 text-[13px] text-[var(--color-subtext)]">
               {description}
             </div>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-[var(--color-accent)]">
+          <span className="text-[14px] font-medium text-[var(--color-accent)]">
             {currentOption?.label ?? value}
           </span>
           <motion.div
             animate={{ rotate: isOpen ? 90 : 0 }}
             transition={springPresets.snappy}
           >
-            <ChevronRight className="h-5 w-5 text-[var(--color-accent)]" />
+            <ChevronRight className="h-5 w-5 text-[var(--color-subtext)]" />
           </motion.div>
         </div>
-      </motion.button>
+      </button>
 
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-50"
             onClick={() => setIsOpen(false)}
           />
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={springPresets.snappy}
-            className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-[rgba(244,178,102,0.2)] bg-[rgba(13,19,28,0.98)] p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+            className="absolute left-4 right-4 top-full z-50 mt-2 overflow-hidden rounded-xl border border-white/10 bg-[rgba(11,17,24,0.98)] shadow-2xl backdrop-blur-xl"
           >
-            {options.map((option, idx) => (
-              <motion.button
+            {options.map((option) => (
+              <button
                 key={option.value}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...springPresets.snappy, delay: idx * 0.03 }}
                 onClick={() => {
                   hapticLight();
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`touch-target w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all ${
+                className={`w-full px-4 py-3 text-left text-[14px] font-medium transition-colors ${
                   value === option.value
-                    ? "bg-gradient-to-r from-[rgba(244,178,102,0.25)] to-[rgba(88,198,177,0.2)] text-[var(--color-accent)] shadow-inner"
-                    : "text-[var(--color-text)] active:bg-[rgba(244,178,102,0.12)] md:hover:bg-[rgba(244,178,102,0.08)]"
+                    ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                    : "text-[var(--color-text)] active:bg-white/5 md:hover:bg-white/[0.03]"
                 }`}
               >
                 {option.label}
-              </motion.button>
+              </button>
             ))}
           </motion.div>
         </>
